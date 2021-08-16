@@ -1,0 +1,63 @@
+"Phrases"
+{
+	"Chat Prefix"
+	{
+		"en"    "[TopDefenders]"
+	}
+	"Cookie Menu"
+	{
+		"en"    "Top Defenders"
+	}
+	"Cookie Menu Title"
+	{
+		"en"    "Top Defenders Settings"
+	}
+	"Enabled"
+	{
+		"en"    "Enabled"
+	}
+	"Disabled"
+	{
+		"en"    "Disabled"
+	}
+	"Crown"
+	{
+		"en"    "Crown"
+	}
+	"Crown Enabled"
+	{
+		"en"    "You will now spawn with a crown again"
+	}
+	"Crown Disabled"
+	{
+		"en"    "You will no longer spawn with a crown"
+	}
+	"Dialog"
+	{
+		"en"    "Dialog"
+	}
+	"Dialog Enabled"
+	{
+		"en"    "You will now see the dialog again"
+	}
+	"Dialog Disabled"
+	{
+		"en"    "You will no longer see the dialog"
+	}
+	"Immunity"
+	{
+		"en"    "Immunity"
+	}
+	"Immunity Enabled"
+	{
+		"en"    "You will now be protected from being mother zombie"
+	}
+	"Immunity Disabled"
+	{
+		"en"    "You will no longer be protected from being mother zombie"
+	}
+	"protected"
+	{
+		"en"    "You have been protected from being mother zombie, since you where top defender last round."
+	}
+}
