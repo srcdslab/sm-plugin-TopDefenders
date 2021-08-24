@@ -13,6 +13,7 @@
 #define SPECMODE_THIRDPERSON    5
 #define SPECMODE_FREELOOK       6
 
+#define HOLY_SOUND_COMMON		"nide/holy.wav"
 #define CROWN_MODEL_CSGO		"models/topdefenders_perk/crown_v2.mdl"
 #define CROWN_MODEL_CSS			"models/unloze/crown_v2.mdl"
 
@@ -59,7 +60,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife",
 	description  = "Show Top Defenders after each round",
-	version      = "1.6"
+	version      = "1.7"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -210,14 +211,14 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 	if (count <= 0)
 	{
 		if (IsValidClient(client))
-			CPrintToChat(client,"{cyan}%t {white}%s", "Chat Prefix", (count < 0) ? "Bad target" : "No target");
+			CPrintToChat(client,"{darkblue}%t {grey}%s", "Chat Prefix", (count < 0) ? "Bad target" : "No target");
 	}
 	else for (int i = 0; i < count; i++)
 	{
 		if (IsValidClient(client))
 		{
 			if (bNotify)
-				CPrintToChatAll("{cyan}%t {green}%N {white}%s mother zombie immunity on player {fullred}%N", "Chat Prefix", client, immunity ? "enabled" : "disabled", targets[i]);
+				CPrintToChatAll("{darkblue}%t {green}%N {grey}%s mother zombie immunity on player {fullred}%N", "Chat Prefix", client, immunity ? "enabled" : "disabled", targets[i]);
 			g_iPlayerImmune[targets[i]] = immunity;
 		}
 	}
@@ -230,6 +231,8 @@ public void ToggleCrown(int client)
 	{
 		if (!g_bIsCSGO)
 			RemoveHat_CSS(client);
+		else
+			RemoveHat_CSGO(client);
 	}
 	else if (!g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == GetSteamAccountID(client))
 	{
@@ -238,19 +241,19 @@ public void ToggleCrown(int client)
 		else
 			CreateHat_CSS(client);
 	}
-	CPrintToChat(client, "{cyan}%t {white}%t", "Chat Prefix", g_bHideCrown[client] ? "Crown Disabled" : "Crown Enabled");
+	CPrintToChat(client, "{darkblue}%t {grey}%t", "Chat Prefix", g_bHideCrown[client] ? "Crown Disabled" : "Crown Enabled");
 }
 
 public void ToggleDialog(int client)
 {
 	g_bHideDialog[client] = !g_bHideDialog[client];
-	CPrintToChat(client, "{cyan}%t {white}%t", "Chat Prefix", g_bHideDialog[client] ? "Dialog Disabled" : "Dialog Enabled");
+	CPrintToChat(client, "{darkblue}%t {grey}%t", "Chat Prefix", g_bHideDialog[client] ? "Dialog Disabled" : "Dialog Enabled");
 }
 
 public void ToggleImmunity(int client)
 {
 	g_bProtection[client] = !g_bProtection[client];
-	CPrintToChat(client, "{cyan}%t {white}%t", "Chat Prefix", g_bProtection[client] ? "Immunity Disabled" : "Immunity Enabled");
+	CPrintToChat(client, "{darkblue}%t {grey}%t", "Chat Prefix", g_bProtection[client] ? "Immunity Disabled" : "Immunity Enabled");
 }
 
 public void ShowSettingsMenu(int client)
@@ -311,27 +314,14 @@ public int MenuHandler_MainMenu(Menu menu, MenuAction action, int client, int se
 
 public void OnMapStart()
 {
-	PrecacheSound("nide/holy.wav");
+	PrecacheSound(HOLY_SOUND_COMMON);
 
 	if (g_bIsCSGO)
 		PrecacheModel(CROWN_MODEL_CSGO);
 	else
-	{
 		PrecacheModel(CROWN_MODEL_CSS);
 
-		AddFileToDownloadsTable("sound/nide/holy.wav");
-		AddFileToDownloadsTable(CROWN_MODEL_CSS);
-		AddFileToDownloadsTable("models/unloze/crown_v2.phy");
-		AddFileToDownloadsTable("models/unloze/crown_v2.vvd");
-		AddFileToDownloadsTable("models/unloze/crown_v2.sw.vtx");
-		AddFileToDownloadsTable("models/unloze/crown_v2.dx80.vtx");
-		AddFileToDownloadsTable("models/unloze/crown_v2.dx90.vtx");
-		AddFileToDownloadsTable("materials/models/unloze/crown/crown.vmt");
-		AddFileToDownloadsTable("materials/models/unloze/crown/crown.vtf");
-		AddFileToDownloadsTable("materials/models/unloze/crown/crown_bump.vtf");
-		AddFileToDownloadsTable("materials/models/unloze/crown/crown_detail.vtf");
-		AddFileToDownloadsTable("materials/models/unloze/crown/crown_lightwarp.vtf");
-	}
+	AddFilesToDownloadsTable("topdefenders_downloadlist.ini");
 
 	GetTeams();
 	ResetImmunity();
@@ -511,8 +501,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 		return;
 
 	char sBuffer[512];
-	Format(sBuffer, sizeof(sBuffer), "TOP DEFENDERS:");
-	Format(sBuffer, sizeof(sBuffer), "%s\n*************************", sBuffer);
+	Format(sBuffer, sizeof(sBuffer), "TOP DEFENDERS:\n");
 
 	for (int i = 0; i < sizeof(g_iPlayerWinner); i++)
 	{
@@ -527,8 +516,6 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 			g_iPlayerWinner[i] = GetSteamAccountID(g_iSortedList[i][0]);
 		}
 	}
-
-	Format(sBuffer, sizeof(sBuffer), "%s\n*************************", sBuffer);
 
 	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 1)
 		PrintToChatAll(sBuffer);
@@ -590,6 +577,11 @@ stock void RemoveHat_CSS(int client)
 			AcceptEntityInput(iCrownEntity, "Kill");
 		g_iCrownEntity = INVALID_ENT_REFERENCE;
 	}
+}
+
+stock void RemoveHat_CSGO(int client)
+{
+	RemoveHat_CSS(client);
 }
 
 stock void CreateHat_CSS(int client) 
@@ -698,6 +690,8 @@ public void OnClientDeath(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	{
 		if (!g_bIsCSGO)
 			RemoveHat_CSS(client);
+		else
+			RemoveHat_CSGO(client);
 	}
 }
 
@@ -743,9 +737,9 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 		}
 	}
 
-	CPrintToChat(client, "{cyan}%t {white}%s", "Chat Prefix", notifChatMsg);
+	CPrintToChat(client, "{darkblue}%t {grey}%s", "Chat Prefix", notifChatMsg);
 
-	EmitSoundToClient(client, "nide/holy.wav", .volume=1.0);
+	EmitSoundToClient(client, HOLY_SOUND_COMMON, .volume=1.0);
 }
 
 public Action ZR_OnClientInfect(&client, &attacker, &bool:motherInfect, &bool:respawnOverride, &bool:respawn)
