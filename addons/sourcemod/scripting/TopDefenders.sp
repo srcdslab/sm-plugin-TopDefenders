@@ -664,7 +664,7 @@ void CreateHat_CSGO(int client)
 	TE_SendToAll();
 }
 
-public Action OnClientSpawnPost(Handle timer, int client)
+public Action OnClientSpawnPost(Handle timer, any client)
 {
 	if (!IsClientInGame(client) || IsFakeClient(client) || !IsPlayerAlive(client))
 		return;
