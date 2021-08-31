@@ -501,7 +501,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 		return;
 
 	char sBuffer[512];
-	Format(sBuffer, sizeof(sBuffer), "TOP DEFENDERS:\n");
+	Format(sBuffer, sizeof(sBuffer), "TOP DEFENDERS:");
 
 	for (int i = 0; i < sizeof(g_iPlayerWinner); i++)
 	{
