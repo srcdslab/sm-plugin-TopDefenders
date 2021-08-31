@@ -680,7 +680,7 @@ public void OnClientDeath(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	int attacker = GetClientOfUserId(hEvent.GetInt("attacker"));
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 
-	if (attacker > 0 && attacker <= MaxClients && IsClientInGame(attacker) && ZR_IsClientHuman(attacker))
+	if (attacker > 0 && attacker <= MaxClients && IsClientInGame(attacker) && IsPlayerAlive(attacker) && ZR_IsClientHuman(attacker))
 	{
 		g_iPlayerKills[attacker]++;
 		LogPlayerEvent(attacker, "triggered", "zombie_kill");
