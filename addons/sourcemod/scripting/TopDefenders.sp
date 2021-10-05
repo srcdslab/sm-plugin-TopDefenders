@@ -13,7 +13,7 @@
 #define SPECMODE_THIRDPERSON    5
 #define SPECMODE_FREELOOK       6
 
-#define HOLY_SOUND_COMMON		"nide/holy.wav"
+#define HOLY_SOUND_COMMON		"topdefenders/holy.wav"
 #define CROWN_MODEL_CSGO		"models/topdefenders_perk/crown_v2.mdl"
 #define CROWN_MODEL_CSS			"models/unloze/crown_v2.mdl"
 
