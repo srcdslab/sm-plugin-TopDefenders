@@ -218,7 +218,7 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 		if (IsValidClient(client))
 		{
 			if (bNotify)
-				CPrintToChatAll("{darkblue}%t {green}%N {grey}%s mother zombie immunity on player {fullred}%N", "Chat Prefix", client, immunity ? "enabled" : "disabled", targets[i]);
+				CPrintToChatAll("{darkblue}%t {green}%N {grey}%s mother zombie immunity on player {darkred}%N", "Chat Prefix", client, immunity ? "enabled" : "disabled", targets[i]);
 			g_iPlayerImmune[targets[i]] = immunity;
 		}
 	}
