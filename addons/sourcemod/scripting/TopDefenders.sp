@@ -501,7 +501,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 		return;
 
 	char sBuffer[512];
-	Format(sBuffer, sizeof(sBuffer), "{darkblue}TOP DEFENDERS:");
+	Format(sBuffer, sizeof(sBuffer), "TOP DEFENDERS:");
 
 	for (int i = 0; i < sizeof(g_iPlayerWinner); i++)
 	{
@@ -518,7 +518,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	}
 
 	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 1)
-		CPrintToChatAll(sBuffer);
+		CPrintToChatAll("{darkblue}%s", sBuffer);
 
 	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 2)
 	{
