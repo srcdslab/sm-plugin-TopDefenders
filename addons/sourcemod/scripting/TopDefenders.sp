@@ -30,7 +30,7 @@ ConVar g_hCVar_ProtectionMinimal1;
 ConVar g_hCVar_ProtectionMinimal2;
 ConVar g_hCVar_ProtectionMinimal3;
 
-ConVar g_cvPrint, g_cvPrintPos, g_cvPrintColor, g_cvDisplayType, g_cvScoreboardType;
+ConVar g_cvHat, g_cvPrint, g_cvPrintPos, g_cvPrintColor, g_cvDisplayType, g_cvScoreboardType;
 
 int g_iPrintColor[3];
 float g_fPrintPos[2];
@@ -58,9 +58,9 @@ bool g_bIsCSGO = false;
 public Plugin myinfo =
 {
 	name         = "Top Defenders",
-	author       = "Neon & zaCade & maxime1907 & Cloud Strife",
+	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.7"
+	version      = "1.8"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -82,6 +82,7 @@ public void OnPluginStart()
 
 	g_cvScoreboardType = CreateConVar("sm_topdefenders_scoreboard_type", "1", "0 = Disabled, 1 = Replace deaths by your topdefender position", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvDisplayType = CreateConVar("sm_topdefenders_display_type", "0", "0 = Ordered by damages, 1 = Ordered by kills", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvHat = 	CreateConVar("sm_topdefenders_hat", "1", "Enable hat on top defenders", _, true, 0.0, true, 1.0);
 	g_cvPrint = CreateConVar("sm_topdefenders_print", "0", "2 - Display in hud, 1 - In chat, 0 - Both", _, true, 0.0, true, 2.0);
 	g_cvPrintPos = CreateConVar("sm_topdefenders_print_position", "0.02 0.25", "The X and Y position for the hud.");
 	g_cvPrintColor = CreateConVar("sm_topdefenders_print_color", "255 255 255", "RGB color value for the hud.");
@@ -236,10 +237,13 @@ public void ToggleCrown(int client)
 	}
 	else if (!g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == GetSteamAccountID(client))
 	{
-		if (g_bIsCSGO)
-			CreateHat_CSGO(client);
-		else
-			CreateHat_CSS(client);
+		if (GetConVarInt(g_cvHat) == 1)
+		{
+			if (g_bIsCSGO)
+				CreateHat_CSGO(client);
+			else
+				CreateHat_CSS(client);
+		}
 	}
 	CPrintToChat(client, "{darkblue}%t {grey}%t", "Chat Prefix", g_bHideCrown[client] ? "Crown Disabled" : "Crown Enabled");
 }
@@ -668,11 +672,13 @@ public Action OnClientSpawnPost(Handle timer, any client)
 {
 	if (!IsClientInGame(client) || IsFakeClient(client) || !IsPlayerAlive(client))
 		return;
-
-	if (g_bIsCSGO)
-		CreateHat_CSGO(client);
-	else
-		CreateHat_CSS(client);
+	if (GetConVarInt(g_cvHat) == 1)
+	{
+		if (g_bIsCSGO)
+			CreateHat_CSGO(client);
+		else
+			CreateHat_CSS(client);
+	}
 }
 
 public void OnClientDeath(Event hEvent, const char[] sEvent, bool bDontBroadcast)
