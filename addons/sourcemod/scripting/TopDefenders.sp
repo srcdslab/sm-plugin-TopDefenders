@@ -60,7 +60,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.8"
+	version      = "1.9.0"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -75,14 +75,14 @@ public void OnPluginStart()
 {
 	LoadTranslations("plugin.topdefenders.phrases");
 
-	g_hCVar_Protection         = CreateConVar("sm_topdefenders_protection", "1", "", FCVAR_NONE, true, 0.0, true, 1.0);
-	g_hCVar_ProtectionMinimal1 = CreateConVar("sm_topdefenders_minimal_1", "15", "", FCVAR_NONE, true, 1.0, true, 64.0);
-	g_hCVar_ProtectionMinimal2 = CreateConVar("sm_topdefenders_minimal_2", "30", "", FCVAR_NONE, true, 1.0, true, 64.0);
-	g_hCVar_ProtectionMinimal3 = CreateConVar("sm_topdefenders_minimal_3", "45", "", FCVAR_NONE, true, 1.0, true, 64.0);
+	g_hCVar_Protection         = CreateConVar("sm_topdefenders_protection", "1", "Enable mother zombie immunity perks", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_hCVar_ProtectionMinimal1 = CreateConVar("sm_topdefenders_minimal_1", "15", "Minimum active players to enable mother zombie immunity for Top 1", FCVAR_NONE, true, 1.0, true, 64.0);
+	g_hCVar_ProtectionMinimal2 = CreateConVar("sm_topdefenders_minimal_2", "30", "Minimum active players to enable mother zombie immunity for Top 2", FCVAR_NONE, true, 1.0, true, 64.0);
+	g_hCVar_ProtectionMinimal3 = CreateConVar("sm_topdefenders_minimal_3", "45", "Minimum active players to enable mother zombie immunity for Top 3", FCVAR_NONE, true, 1.0, true, 64.0);
 
 	g_cvScoreboardType = CreateConVar("sm_topdefenders_scoreboard_type", "1", "0 = Disabled, 1 = Replace deaths by your topdefender position", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvDisplayType = CreateConVar("sm_topdefenders_display_type", "0", "0 = Ordered by damages, 1 = Ordered by kills", FCVAR_NONE, true, 0.0, true, 1.0);
-	g_cvHat = 	CreateConVar("sm_topdefenders_hat", "1", "Enable hat on top defenders", _, true, 0.0, true, 1.0);
+	g_cvHat = CreateConVar("sm_topdefenders_hat", "1", "Enable hat on top defenders", _, true, 0.0, true, 1.0);
 	g_cvPrint = CreateConVar("sm_topdefenders_print", "0", "2 - Display in hud, 1 - In chat, 0 - Both", _, true, 0.0, true, 2.0);
 	g_cvPrintPos = CreateConVar("sm_topdefenders_print_position", "0.02 0.25", "The X and Y position for the hud.");
 	g_cvPrintColor = CreateConVar("sm_topdefenders_print_color", "255 255 255", "RGB color value for the hud.");
@@ -91,9 +91,9 @@ public void OnPluginStart()
 	g_cvPrintPos.AddChangeHook(OnConVarChange);
 	g_cvPrintColor.AddChangeHook(OnConVarChange);
 
-	g_hCookie_HideCrown  = RegClientCookie("topdefenders_hidecrown",  "", CookieAccess_Private);
-	g_hCookie_HideDialog = RegClientCookie("topdefenders_hidedialog", "", CookieAccess_Private);
-	g_hCookie_Protection = RegClientCookie("topdefenders_protection", "", CookieAccess_Private);
+	g_hCookie_HideCrown  = RegClientCookie("topdefenders_hidecrown",  "Enable/disable crown model", CookieAccess_Private);
+	g_hCookie_HideDialog = RegClientCookie("topdefenders_hidedialog", "Enable/disable top left dialog", CookieAccess_Private);
+	g_hCookie_Protection = RegClientCookie("topdefenders_protection", "Enable/disable zombie protection", CookieAccess_Private);
 
 	g_hHudSync = CreateHudSynchronizer();
 
@@ -102,12 +102,12 @@ public void OnPluginStart()
 
 	UpdateDefendersList(INVALID_HANDLE);
 
-	RegConsoleCmd("sm_togglecrown",    OnToggleCrown);
-	RegConsoleCmd("sm_toggledialog",   OnToggleDialog);
-	RegConsoleCmd("sm_toggleimmunity", OnToggleImmunity);
+	RegConsoleCmd("sm_togglecrown",    OnToggleCrown, "Enable/disable crown model");
+	RegConsoleCmd("sm_toggledialog",   OnToggleDialog, "Enable/disable top left dialog");
+	RegConsoleCmd("sm_toggleimmunity", OnToggleImmunity, "Enable/disable zombie protection");
 
-	RegAdminCmd("sm_immunity",	Command_Immunity,	ADMFLAG_CONVARS,		"sm_immunity <#userid|name> <0|1>");
-	RegAdminCmd("sm_debugcrown", Command_DebugCrown, ADMFLAG_ROOT);
+	RegAdminCmd("sm_immunity",	Command_Immunity,	ADMFLAG_CONVARS,	"Give mother zombie immunity to a player");
+	RegAdminCmd("sm_debugcrown", Command_DebugCrown, ADMFLAG_ROOT, "Spawn the crown model on yourself");
 
 	HookEvent("round_start",  OnRoundStart);
 	HookEvent("round_end",    OnRoundEnding);
@@ -672,6 +672,7 @@ public Action OnClientSpawnPost(Handle timer, any client)
 {
 	if (!IsClientInGame(client) || IsFakeClient(client) || !IsPlayerAlive(client))
 		return;
+
 	if (GetConVarInt(g_cvHat) == 1)
 	{
 		if (g_bIsCSGO)
@@ -750,25 +751,36 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 
 public Action ZR_OnClientInfect(&client, &attacker, &bool:motherInfect, &bool:respawnOverride, &bool:respawn)
 {
-	if (g_hCVar_Protection.BoolValue && motherInfect && !g_bProtection[client])
+	char notifHudMsg[255] = "";
+	char notifChatMsg[255] = "";
+	int activePlayers = GetTeamClientCount(CS_TEAM_CT) + GetTeamClientCount(CS_TEAM_T);
+
+	if (motherInfect)
 	{
-		if ((g_iPlayerWinner[0] == GetSteamAccountID(client) && GetClientCount() >= g_hCVar_ProtectionMinimal1.IntValue) ||
-			(g_iPlayerWinner[1] == GetSteamAccountID(client) && GetClientCount() >= g_hCVar_ProtectionMinimal2.IntValue) ||
-			(g_iPlayerWinner[2] == GetSteamAccountID(client) && GetClientCount() >= g_hCVar_ProtectionMinimal3.IntValue))
+		if (g_hCVar_Protection.BoolValue
+			&& !g_bProtection[client]
+			&& ((g_iPlayerWinner[0] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal1.IntValue) ||
+			(g_iPlayerWinner[1] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal2.IntValue) ||
+			(g_iPlayerWinner[2] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal3.IntValue)))
+		{
+			notifHudMsg = "You have been protected from being Mother Zombie\nsince you were the Top Defender last round!";
+			notifChatMsg = "You have been protected from being Mother Zombie since you were the Top Defender last round!";
+		}
+		else if (g_iPlayerImmune[client] == true)
+		{
+			notifHudMsg = "An administrator has protected you\nfrom being Mother Zombie";
+			notifChatMsg = "An administrator has protected you from being Mother Zombie";
+		}
+
+		if (notifHudMsg[0] != '\0' && notifChatMsg[0] != '\0')
 		{
 			SetImmunity(
 				client,
-				"You have been protected from being Mother Zombie\nsince you were the Top Defender last round!",
-				"You have been protected from being Mother Zombie since you were the Top Defender last round!"
+				notifHudMsg,
+				notifChatMsg
 			);
 			return Plugin_Handled;
 		}
-	}
-
-	if (motherInfect && g_iPlayerImmune[client] == true)
-	{
-		SetImmunity(client, "An administrator has protected you\nfrom being Mother Zombie", "An administrator has protected you from being Mother Zombie");
-		return Plugin_Handled;
 	}
 	return Plugin_Continue;
 }
