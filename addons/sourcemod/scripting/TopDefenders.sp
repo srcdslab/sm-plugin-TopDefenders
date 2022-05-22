@@ -60,7 +60,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.0"
+	version      = "1.9.1"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -203,25 +203,37 @@ public Action Command_Immunity(int client, int args)
 
 public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNotify)
 {
-	char buffer[96];
+	char sTargetName[MAX_TARGET_LENGTH];
 	int targets[MAXPLAYERS+1];
 	bool ml = false;
 
-	int count = ProcessTargetString(pattern,client,targets,sizeof(targets),COMMAND_FILTER_CONNECTED,buffer,sizeof(buffer),ml);
+	int count = ProcessTargetString(pattern, client, targets, MAXPLAYERS, COMMAND_FILTER_CONNECTED, sTargetName, sizeof(sTargetName), ml);
 
 	if (count <= 0)
 	{
 		if (IsValidClient(client))
-			CPrintToChat(client,"{darkblue}%t {grey}%s", "Chat Prefix", (count < 0) ? "Bad target" : "No target");
+		{
+			CPrintToChat(client,"{green}%t {default}%s", "Chat Prefix", (count < 0) ? "Bad target" : "No target");
+			return;
+		}
 	}
-	else for (int i = 0; i < count; i++)
+	
+	for (int i = 0; i < count; i++)
 	{
 		if (IsValidClient(client))
-		{
-			if (bNotify)
-				CPrintToChatAll("{darkblue}%t {green}%N {grey}%s mother zombie immunity on player {darkred}%N", "Chat Prefix", client, immunity ? "enabled" : "disabled", targets[i]);
 			g_iPlayerImmune[targets[i]] = immunity;
-		}
+	}
+	
+	if (bNotify)
+	{
+		CShowActivity2(client, "{green}[TopDefenders] {olive}", "{default}have {green}%s {default}mother zombie immunity on {olive}%s{default}.", immunity ? "enabled" : "disabled", sTargetName);
+		
+		if(count > 1)
+			LogAction(client, -1, "[TopDefenders] \"%L\" have %s mother zombie immunity on \"%s\"", client, immunity ? "Enabled" : "Disabled", sTargetName);
+		else
+			LogAction(client, targets[0], "[TopDefenders] \"%L\" have %s mother zombie immunity on \"%L\"", client, immunity ? "Enabled" : "Disabled", targets[0]);
+
+		return;
 	}
 }
 
@@ -245,19 +257,19 @@ public void ToggleCrown(int client)
 				CreateHat_CSS(client);
 		}
 	}
-	CPrintToChat(client, "{darkblue}%t {grey}%t", "Chat Prefix", g_bHideCrown[client] ? "Crown Disabled" : "Crown Enabled");
+	CPrintToChat(client, "{green}%t {default}%t", "Chat Prefix", g_bHideCrown[client] ? "Crown Disabled" : "Crown Enabled");
 }
 
 public void ToggleDialog(int client)
 {
 	g_bHideDialog[client] = !g_bHideDialog[client];
-	CPrintToChat(client, "{darkblue}%t {grey}%t", "Chat Prefix", g_bHideDialog[client] ? "Dialog Disabled" : "Dialog Enabled");
+	CPrintToChat(client, "{green}%t {default}%t", "Chat Prefix", g_bHideDialog[client] ? "Dialog Disabled" : "Dialog Enabled");
 }
 
 public void ToggleImmunity(int client)
 {
 	g_bProtection[client] = !g_bProtection[client];
-	CPrintToChat(client, "{darkblue}%t {grey}%t", "Chat Prefix", g_bProtection[client] ? "Immunity Disabled" : "Immunity Enabled");
+	CPrintToChat(client, "{green}%t {default}%t", "Chat Prefix", g_bProtection[client] ? "Immunity Disabled" : "Immunity Enabled");
 }
 
 public void ShowSettingsMenu(int client)
@@ -522,7 +534,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	}
 
 	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 1)
-		CPrintToChatAll("{darkblue}%s", sBuffer);
+		CPrintToChatAll("{green}%s", sBuffer);
 
 	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 2)
 	{
@@ -743,8 +755,10 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 			EndMessage();
 		}
 	}
-
-	CPrintToChat(client, "{darkblue}%t {grey}%s", "Chat Prefix", notifChatMsg);
+	if (g_bIsCSGO)
+		CPrintToChat(client, "{green}%t {default}%s", "Chat Prefix", notifChatMsg);
+	else
+		CPrintToChat(client, "{green}%t {white}%s", "Chat Prefix", notifChatMsg);
 
 	EmitSoundToClient(client, HOLY_SOUND_COMMON, .volume=1.0);
 }
