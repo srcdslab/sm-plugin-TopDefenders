@@ -60,7 +60,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.1"
+	version      = "1.9.2"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -172,6 +172,12 @@ public void ResetImmunity()
 
 public Action Command_DebugCrown(int client, int args)
 {
+	if (!client)
+	{
+		PrintToServer("[SM] Cannot use this command from server console.");
+		return Plugin_Handled;
+	}
+
 	CreateTimer(1.0, OnClientSpawnPost, client, TIMER_FLAG_NO_MAPCHANGE);
 	return Plugin_Handled;
 }
@@ -180,13 +186,19 @@ public Action Command_Immunity(int client, int args)
 {
 	if (args < 2)
 	{
-		ReplyToCommand(client, "[SM] Usage: sm_immunity <target> <0|1>");
+		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_immunity <target> <0|1>");
 		return Plugin_Handled;
 	}
 
 	char pattern[96], immunity[32], notify[32];
 	GetCmdArg(1, pattern, sizeof(pattern));
 	GetCmdArg(2, immunity, sizeof(immunity));
+
+	if(StrEqual(pattern, "@all", false))
+	{
+		CReplyToCommand(client, "{green}[SM] {default}Cannot perform an immunity on all players!");
+		return Plugin_Handled;
+	}
 
 	int im = StringToInt(immunity);
 
