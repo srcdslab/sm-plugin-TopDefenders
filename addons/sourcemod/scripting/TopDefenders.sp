@@ -48,7 +48,7 @@ int g_iSortedCount = 0;
 
 bool g_iPlayerImmune[MAXPLAYERS+1];
 
-int g_iEntIndex[MAXPLAYERS + 1] = -1;
+int g_iEntIndex[MAXPLAYERS + 1] = { -1, ... };
 
 Handle g_hHudSync = INVALID_HANDLE;
 Handle g_hUpdateTimer = INVALID_HANDLE;
@@ -338,6 +338,7 @@ public int MenuHandler_MainMenu(Menu menu, MenuAction action, int client, int se
 			delete menu;
 		}
 	}
+	return 0;
 }
 
 public void OnMapStart()
@@ -466,7 +467,7 @@ public Action UpdateDefendersList(Handle timer)
 public Action UpdateClientUI(int iClient)
 {
 	if (!IsClientInGame(iClient))
-		return;
+		return Plugin_Continue;
 
 	int rank = 0;
 	while (rank < g_iSortedCount)
@@ -482,7 +483,7 @@ public Action UpdateClientUI(int iClient)
 		if (rank >= g_iSortedCount)
 		{
 			SetEntProp(iClient, Prop_Data, "m_iDeaths", 0);
-			return;
+			return Plugin_Continue;
 		}
 		else
 		{
@@ -491,7 +492,7 @@ public Action UpdateClientUI(int iClient)
 	}
 
 	if (g_iDialogLevel <= 0)
-		return;
+		return Plugin_Continue;
 
 	// Dialog
 	switch(rank)
@@ -500,6 +501,7 @@ public Action UpdateClientUI(int iClient)
 		case(1): SendDialog(iClient, "#%d (D: %d | N: +%d)",          g_iDialogLevel, 1, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1]);
 		default: SendDialog(iClient, "#%d (D: %d | N: +%d | F: +%d)", g_iDialogLevel, 1, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
 	}
+	return Plugin_Continue;
 }
 
 public void OnRoundStart(Event hEvent, const char[] sEvent, bool bDontBroadcast)
@@ -695,7 +697,7 @@ void CreateHat_CSGO(int client)
 public Action OnClientSpawnPost(Handle timer, any client)
 {
 	if (!IsClientInGame(client) || IsFakeClient(client) || !IsPlayerAlive(client))
-		return;
+		return Plugin_Continue;
 
 	if (GetConVarInt(g_cvHat) == 1)
 	{
@@ -704,6 +706,7 @@ public Action OnClientSpawnPost(Handle timer, any client)
 		else
 			CreateHat_CSS(client);
 	}
+	return Plugin_Continue;
 }
 
 public void OnClientDeath(Event hEvent, const char[] sEvent, bool bDontBroadcast)
