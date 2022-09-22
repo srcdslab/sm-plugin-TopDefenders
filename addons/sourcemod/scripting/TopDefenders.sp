@@ -58,9 +58,9 @@ bool g_bIsCSGO = false;
 public Plugin myinfo =
 {
 	name         = "Top Defenders",
-	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
+	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway & Dolly",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.2"
+	version      = "1.9.3"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
