@@ -514,6 +514,8 @@ public void OnRoundStart(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 		g_iPlayerDamage[client] = 0;
 		g_iPlayerDamageFrom1K[client] = 0;
 	}
+	
+	g_iCrownEntity = -1;
 }
 
 public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast)
@@ -594,18 +596,16 @@ public void OnClientSpawn(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 	if (g_iPlayerWinner[0] == GetSteamAccountID(client) && !g_bHideCrown[client])
 	{
-		CreateTimer(7.0, OnClientSpawnPost, client, TIMER_FLAG_NO_MAPCHANGE);
+		CreateTimer(7.0, OnClientSpawnPost, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
 	}
 }
 
 stock void RemoveHat_CSS(int client)
 {
-	if (g_iCrownEntity != INVALID_ENT_REFERENCE)
+	if(IsValidEntity(g_iCrownEntity))
 	{
-		int iCrownEntity = EntRefToEntIndex(g_iCrownEntity);
-		if(IsValidEntity(iCrownEntity))
-			AcceptEntityInput(iCrownEntity, "Kill");
-		g_iCrownEntity = INVALID_ENT_REFERENCE;
+		RemoveEntity(g_iCrownEntity);
+		g_iCrownEntity = -1;
 	}
 }
 
@@ -615,18 +615,20 @@ stock void RemoveHat_CSGO(int client)
 }
 
 stock void CreateHat_CSS(int client) 
-{ 
-	if ((g_iCrownEntity = EntIndexToEntRef(CreateEntityByName("prop_dynamic"))) == INVALID_ENT_REFERENCE)
+{
+	if(!IsPlayerAlive(client) || GetClientTeam(client) <= 1)
+		return;
+		
+	if(g_iCrownEntity != -1)
 		return;
 	
-	int iCrownEntity = EntRefToEntIndex(g_iCrownEntity);
-	SetEntityModel(iCrownEntity, CROWN_MODEL_CSS);
-
-	DispatchKeyValue(iCrownEntity, "solid",                 "0");
-	DispatchKeyValue(iCrownEntity, "modelscale",            "1.5");
-	DispatchKeyValue(iCrownEntity, "disableshadows",        "1");
-	DispatchKeyValue(iCrownEntity, "disablereceiveshadows", "1");
-	DispatchKeyValue(iCrownEntity, "disablebonefollowers",  "1");
+	g_iCrownEntity = CreateEntityByName("prop_dynamic_override");
+	if(g_iCrownEntity == -1)
+		return;
+	
+	DispatchKeyValue(g_iCrownEntity, "model", CROWN_MODEL_CSS);
+	DispatchKeyValue(g_iCrownEntity, "solid", "0");
+	DispatchKeyValue(g_iCrownEntity, "modelscale", "1.5");
 
 	float fVector[3];
 	float fAngles[3];
@@ -637,7 +639,16 @@ stock void CreateHat_CSS(int client)
 	fAngles[0] = 8.0;
 	fAngles[2] = 5.5;
 
-	TeleportEntity(iCrownEntity, fVector, fAngles, NULL_VECTOR);
+	DispatchSpawn(g_iCrownEntity);
+	
+	SetVariantString("disableshadows 1");
+	AcceptEntityInput(g_iCrownEntity, "AddOutput");
+	SetVariantString("disablereceiveshadows 1");
+	AcceptEntityInput(g_iCrownEntity, "AddOutput");
+	
+	TeleportEntity(g_iCrownEntity, fVector, fAngles, NULL_VECTOR);
+	SetVariantString("!activator");
+	AcceptEntityInput(g_iCrownEntity, "SetParent", client);
 
 	float fDirection[3];
 	fDirection[0] = 0.0;
@@ -646,9 +657,6 @@ stock void CreateHat_CSS(int client)
 
 	TE_SetupSparks(fVector, fDirection, 1000, 200);
 	TE_SendToAll();
-
-	SetVariantString("!activator");
-	AcceptEntityInput(iCrownEntity, "SetParent", client);
 }
 
 void CreateHat_CSGO(int client) 
@@ -694,8 +702,10 @@ void CreateHat_CSGO(int client)
 	TE_SendToAll();
 }
 
-public Action OnClientSpawnPost(Handle timer, any client)
+public Action OnClientSpawnPost(Handle timer, int userid)
 {
+	int client = GetClientOfUserId(userid);
+	
 	if (!IsClientInGame(client) || IsFakeClient(client) || !IsPlayerAlive(client))
 		return Plugin_Continue;
 
