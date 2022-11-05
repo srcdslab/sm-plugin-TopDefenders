@@ -1,0 +1,51 @@
+project:
+  sourceknight: 0.1
+  name: TopDefenders
+  dependencies:
+    - name: sourcemod
+      type: tar
+      version: 1.11.0-git6917
+      location: https://sm.alliedmods.net/smdrop/1.11/sourcemod-1.11.0-git6917-linux.tar.gz
+      unpack:
+      - source: /addons
+        dest: /addons
+
+    - name: multicolors
+      type: git
+      repo: https://github.com/srcdslab/sm-plugin-MultiColors
+      unpack:
+      - source: /addons/sourcemod/scripting/include
+        dest: /addons/sourcemod/scripting/include
+
+    - name: zombiereloaded
+      type: git
+      repo: https://github.com/srcdslab/sm-plugin-zombiereloaded
+      unpack:
+      - source: /src/addons/sourcemod/scripting/include
+        dest: /addons/sourcemod/scripting/include
+
+    - name: lagreducer
+      type: git
+      repo: https://github.com/srcdslab/sm-plugin-LagReducer
+      unpack:
+      - source: /addons/sourcemod/scripting/include
+        dest: /addons/sourcemod/scripting/include
+
+    - name: loghelper
+      type: git
+      repo: https://github.com/srcdslab/sm-plugin-LogHelper
+      unpack:
+      - source: /addons/sourcemod/scripting/include
+        dest: /addons/sourcemod/scripting/include
+
+    - name: utilshelper
+      type: git
+      repo: https://github.com/srcdslab/sm-plugin-UtilsHelper
+      unpack:
+      - source: /addons/sourcemod/scripting/include
+        dest: /addons/sourcemod/scripting/include
+
+  root: /
+  output: /addons/sourcemod/plugins
+  targets:
+    - TopDefenders
