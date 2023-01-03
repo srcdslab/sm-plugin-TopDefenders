@@ -1,9 +1,8 @@
+#include <zombiereloaded>
 #include <clientprefs>
+#include <multicolors>
 #include <sourcemod>
 #include <sdktools>
-
-#include <multicolors>
-#include <zombiereloaded>
 #include <LagReducer>
 
 #include "loghelper.inc"
@@ -61,7 +60,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.2"
+	version      = "1.9.3"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -220,7 +219,7 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 	int targets[MAXPLAYERS+1];
 	bool ml = false;
 
-	int count = ProcessTargetString(pattern, client, targets, MAXPLAYERS, COMMAND_FILTER_CONNECTED, sTargetName, sizeof(sTargetName), ml);
+	int count = ProcessTargetString(pattern, client, targets, MAXPLAYERS, COMMAND_FILTER_CONNECTED | COMMAND_FILTER_NO_IMMUNITY, sTargetName, sizeof(sTargetName), ml);
 
 	if (count <= 0)
 	{
@@ -741,7 +740,7 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 			PbSetInt(hMessageInfection, "effect", 0);
 			PbSetColor(hMessageInfection, "clr1", {255, 255, 255, 255});
 			PbSetColor(hMessageInfection, "clr2", {255, 255, 255, 255});
-			PbSetVector2D(hMessageInfection, "pos", Float:{-1.0, 0.3});
+			PbSetVector2D(hMessageInfection, "pos", view_as<float>({-1.0, 0.3}));
 			PbSetFloat(hMessageInfection, "fade_in_time", 0.1);
 			PbSetFloat(hMessageInfection, "fade_out_time", 0.1);
 			PbSetFloat(hMessageInfection, "hold_time", 5.0);
@@ -779,7 +778,7 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 	EmitSoundToClient(client, HOLY_SOUND_COMMON, .volume=1.0);
 }
 
-public Action ZR_OnClientInfect(&client, &attacker, &bool:motherInfect, &bool:respawnOverride, &bool:respawn)
+public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, bool &respawnOverride, bool &respawn) 
 {
 	char notifHudMsg[255] = "";
 	char notifChatMsg[255] = "";
