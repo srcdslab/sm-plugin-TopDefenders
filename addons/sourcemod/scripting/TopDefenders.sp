@@ -4,6 +4,7 @@
 #include <sourcemod>
 #include <sdktools>
 #include <LagReducer>
+#tryinclude <AFKManager>
 
 #include "loghelper.inc"
 #include "utilshelper.inc"
@@ -30,7 +31,7 @@ ConVar g_hCVar_ProtectionMinimal1;
 ConVar g_hCVar_ProtectionMinimal2;
 ConVar g_hCVar_ProtectionMinimal3;
 
-ConVar g_cvHat, g_cvPrint, g_cvPrintPos, g_cvPrintColor, g_cvDisplayType, g_cvScoreboardType;
+ConVar g_cvHat, g_cvEvent, g_cvIdleTime, g_cvPrint, g_cvPrintPos, g_cvPrintColor, g_cvDisplayType, g_cvScoreboardType;
 
 int g_iPrintColor[3];
 float g_fPrintPos[2];
@@ -39,14 +40,14 @@ int g_iCrownEntity = -1;
 int g_iDialogLevel = 100000;
 
 int g_iPlayerWinner[3];
-int g_iPlayerKills[MAXPLAYERS+1];
-int g_iPlayerDamage[MAXPLAYERS+1];
-int g_iPlayerDamageFrom1K[MAXPLAYERS+1];
+int g_iPlayerKills[MAXPLAYERS + 1] = { 0, ... };
+int g_iPlayerDamage[MAXPLAYERS + 1];
+int g_iPlayerDamageEvent[MAXPLAYERS + 1];
 
-int g_iSortedList[MAXPLAYERS+1][2];
+int g_iSortedList[MAXPLAYERS + 1][2];
 int g_iSortedCount = 0;
 
-bool g_iPlayerImmune[MAXPLAYERS+1];
+bool g_iPlayerImmune[MAXPLAYERS + 1];
 
 int g_iEntIndex[MAXPLAYERS + 1] = { -1, ... };
 
@@ -54,13 +55,14 @@ Handle g_hHudSync = INVALID_HANDLE;
 Handle g_hUpdateTimer = INVALID_HANDLE;
 
 bool g_bIsCSGO = false;
+bool g_bKnifeMode = false;
 
 public Plugin myinfo =
 {
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.3"
+	version      = "1.9.4"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -82,6 +84,8 @@ public void OnPluginStart()
 
 	g_cvScoreboardType = CreateConVar("sm_topdefenders_scoreboard_type", "1", "0 = Disabled, 1 = Replace deaths by your topdefender position", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvDisplayType = CreateConVar("sm_topdefenders_display_type", "0", "0 = Ordered by damages, 1 = Ordered by kills", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvEvent = CreateConVar("sm_topdefenders_event", "5000", "Damage required to trigger event \"damage_zombie\"", _, true, 100.0, true, 99999.0);
+	g_cvIdleTime = CreateConVar("sm_topdefenders_idle", "30", "Time in seconds to consider victim as AFK.", _, true, 1.0);
 	g_cvHat = CreateConVar("sm_topdefenders_hat", "1", "Enable hat on top defenders", _, true, 0.0, true, 1.0);
 	g_cvPrint = CreateConVar("sm_topdefenders_print", "0", "2 - Display in hud, 1 - In chat, 0 - Both", _, true, 0.0, true, 2.0);
 	g_cvPrintPos = CreateConVar("sm_topdefenders_print_position", "0.02 0.25", "The X and Y position for the hud.");
@@ -137,6 +141,27 @@ public void OnPluginEnd()
 		if (IsClientConnected(i))
 			OnClientDisconnect(i);
 	}
+}
+
+public void OnAllPluginsLoaded()
+{
+    g_bKnifeMode = LibraryExists("KnifeMode");
+}
+
+public void OnLibraryAdded(const char[] name)
+{
+    if (StrEqual(name, "KnifeMode"))
+    {
+        g_bKnifeMode = true;
+    }
+}
+
+public void OnLibraryRemoved(const char[] name)
+{
+    if (StrEqual(name, "KnifeMode"))
+    {
+        g_bKnifeMode = false;
+    }
 }
 
 public void OnConVarChange(ConVar convar, char[] oldValue, char[] newValue)
@@ -365,6 +390,8 @@ public void OnMapEnd()
 		KillTimer(g_hUpdateTimer);
 		g_hUpdateTimer = INVALID_HANDLE;
 	}
+	if (g_bKnifeMode)
+		ResetConVar(g_cvDisplayType, false, false);
 }
 
 public void OnClientPutInServer(int client)
@@ -512,7 +539,7 @@ public void OnRoundStart(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 	{
 		g_iPlayerKills[client] = 0;
 		g_iPlayerDamage[client] = 0;
-		g_iPlayerDamageFrom1K[client] = 0;
+		g_iPlayerDamageEvent[client] = 0;
 	}
 }
 
@@ -531,17 +558,29 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 		return;
 
 	char sBuffer[512];
-	Format(sBuffer, sizeof(sBuffer), "TOP DEFENDERS:");
+	if (!g_bKnifeMode)
+		Format(sBuffer, sizeof(sBuffer), "TOP DEFENDERS:");
+	else
+		Format(sBuffer, sizeof(sBuffer), "TOP KNIFERS:");
 
 	for (int i = 0; i < sizeof(g_iPlayerWinner); i++)
 	{
 		if (g_iSortedList[i][0] > 0)
 		{
-			if (GetConVarInt(g_cvDisplayType) == 0)
-				Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d DMG", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1]);
-			else if (GetConVarInt(g_cvDisplayType) == 1)
-				Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d KILLED", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1]);
-			LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_defender" : (i == 1 ? "second_defender" : (i == 2 ? "third_defender" : "super_defender")));
+			if (!g_bKnifeMode)
+			{
+				if (GetConVarInt(g_cvDisplayType) == 0)
+					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d DMG", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1]);
+				else if (GetConVarInt(g_cvDisplayType) == 1)
+					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d KILLS", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1]);
+				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_defender" : (i == 1 ? "second_defender" : (i == 2 ? "third_defender" : "super_defender")));
+			}
+			else
+			{
+				SetConVarInt(g_cvDisplayType, 1);
+				Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d KILLS", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1]);
+				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_knifer" : (i == 1 ? "second_knifer" : (i == 2 ? "third_knifer" : "super_knifer")));
+			}
 
 			g_iPlayerWinner[i] = GetSteamAccountID(g_iSortedList[i][0]);
 		}
@@ -579,11 +618,24 @@ public void OnClientHurt(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 	int iDamage = hEvent.GetInt("dmg_health");
 
 	g_iPlayerDamage[client] += iDamage;
-	g_iPlayerDamageFrom1K[client] += iDamage;
 
-	if (g_iPlayerDamageFrom1K[client] >= 1000)
+#if defined _AFKManager_Included
+	if (IsFakeClient(victim) || IsClientObserver(victim))
+		return;
+
+	int currentidletime = GetClientIdleTime(victim);
+	if (g_cvIdleTime.IntValue < 0)
+		g_cvIdleTime.IntValue = 0;
+
+	if (currentidletime > g_cvIdleTime.IntValue)
+		return;
+#endif
+
+	g_iPlayerDamageEvent[client] += iDamage;
+
+	if (g_iPlayerDamageEvent[client] >= g_cvEvent.IntValue)
 	{
-		g_iPlayerDamageFrom1K[client] -= 1000;
+		g_iPlayerDamageEvent[client] -= g_cvEvent.IntValue;
 		LogPlayerEvent(client, "triggered", "damage_zombie");
 	}
 }
@@ -716,6 +768,8 @@ public void OnClientDeath(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 	if (attacker > 0 && attacker <= MaxClients && IsClientInGame(attacker) && IsPlayerAlive(attacker) && ZR_IsClientHuman(attacker))
 	{
+		if (g_iPlayerKills[attacker] == 1) g_iPlayerKills[attacker]++; // 1st kill is never counted, so tricky fix to display the correct value..
+
 		g_iPlayerKills[attacker]++;
 		LogPlayerEvent(attacker, "triggered", "zombie_kill");
 	}
@@ -792,8 +846,16 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 			(g_iPlayerWinner[1] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal2.IntValue) ||
 			(g_iPlayerWinner[2] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal3.IntValue)))
 		{
-			notifHudMsg = "You have been protected from being Mother Zombie\nsince you were the Top Defender last round!";
-			notifChatMsg = "You have been protected from being Mother Zombie since you were the Top Defender last round!";
+			if (g_bKnifeMode)
+			{
+				notifHudMsg = "You have been protected from being Mother Zombie\nsince you were the Top Knifer last round!";
+				notifChatMsg = "You have been protected from being Mother Zombie since you were the Top Knifer last round!";
+			}
+			else
+			{
+				notifHudMsg = "You have been protected from being Mother Zombie\nsince you were the Top Defender last round!";
+				notifChatMsg = "You have been protected from being Mother Zombie since you were the Top Defender last round!";
+			}
 		}
 		else if (g_iPlayerImmune[client] == true)
 		{
