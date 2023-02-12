@@ -45,6 +45,13 @@ project:
       - source: /addons/sourcemod/scripting/include
         dest: /addons/sourcemod/scripting/include
 
+    - name: afkmanager
+      type: git
+      repo: https://github.com/srcdslab/sm-plugin-AFKManager
+      unpack:
+      - source: /addons/sourcemod/scripting/include
+        dest: /addons/sourcemod/scripting/include
+
   root: /
   output: /addons/sourcemod/plugins
   targets:
