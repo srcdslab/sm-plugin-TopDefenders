@@ -36,6 +36,7 @@ ConVar g_cvHat, g_cvEvent, g_cvIdleTime, g_cvPrint, g_cvPrintPos, g_cvPrintColor
 int g_iPrintColor[3];
 float g_fPrintPos[2];
 
+int iDefaultType = -1;
 int g_iCrownEntity = -1;
 int g_iDialogLevel = 100000;
 
@@ -62,7 +63,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.4"
+	version      = "1.9.5"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -383,6 +384,11 @@ public void OnMapStart()
 	g_hUpdateTimer = CreateTimer(0.5, UpdateDefendersList, INVALID_HANDLE, TIMER_REPEAT);
 }
 
+public void OnConfigsExecuted()
+{
+	iDefaultType = g_cvDisplayType.IntValue;
+}
+
 public void OnMapEnd()
 {
 	if (g_hUpdateTimer != INVALID_HANDLE)
@@ -391,7 +397,7 @@ public void OnMapEnd()
 		g_hUpdateTimer = INVALID_HANDLE;
 	}
 	if (g_bKnifeMode)
-		ResetConVar(g_cvDisplayType, false, false);
+		g_cvDisplayType.IntValue = iDefaultType;
 }
 
 public void OnClientPutInServer(int client)
@@ -547,6 +553,9 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 {
 	g_iPlayerWinner = {-1, -1, -1};
 
+	if (g_bKnifeMode)
+		g_cvDisplayType.IntValue = 1;
+
 	UpdateDefendersList(INVALID_HANDLE);
 
 	for (int rank = 0; rank < g_iSortedCount; rank++)
@@ -577,7 +586,6 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 			}
 			else
 			{
-				SetConVarInt(g_cvDisplayType, 1);
 				Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d KILLS", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1]);
 				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_knifer" : (i == 1 ? "second_knifer" : (i == 2 ? "third_knifer" : "super_knifer")));
 			}
@@ -636,7 +644,9 @@ public void OnClientHurt(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 	if (g_iPlayerDamageEvent[client] >= g_cvEvent.IntValue)
 	{
 		g_iPlayerDamageEvent[client] -= g_cvEvent.IntValue;
-		LogPlayerEvent(client, "triggered", "damage_zombie");
+
+		if (!g_bKnifeMode)
+			LogPlayerEvent(client, "triggered", "damage_zombie");
 	}
 }
 
@@ -834,8 +844,8 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 
 public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, bool &respawnOverride, bool &respawn) 
 {
-	char notifHudMsg[255] = "";
-	char notifChatMsg[255] = "";
+	char notifHudMsg[255];
+	char notifChatMsg[255];
 	int activePlayers = GetTeamClientCount(CS_TEAM_CT) + GetTeamClientCount(CS_TEAM_T);
 
 	if (motherInfect)
@@ -846,16 +856,8 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 			(g_iPlayerWinner[1] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal2.IntValue) ||
 			(g_iPlayerWinner[2] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal3.IntValue)))
 		{
-			if (g_bKnifeMode)
-			{
-				notifHudMsg = "You have been protected from being Mother Zombie\nsince you were the Top Knifer last round!";
-				notifChatMsg = "You have been protected from being Mother Zombie since you were the Top Knifer last round!";
-			}
-			else
-			{
-				notifHudMsg = "You have been protected from being Mother Zombie\nsince you were the Top Defender last round!";
-				notifChatMsg = "You have been protected from being Mother Zombie since you were the Top Defender last round!";
-			}
+			FormatEx(notifHudMsg, sizeof(notifHudMsg), "You have been protected from being Mother Zombie\nsince you were the Top %s last round!", g_bKnifeMode ? "Knifer" : "Defender");
+			FormatEx(notifChatMsg, sizeof(notifChatMsg), "You have been protected from being Mother Zombie since you were the Top %s last round!", g_bKnifeMode ? "Knifer" : "Defender");
 		}
 		else if (g_iPlayerImmune[client] == true)
 		{
