@@ -4,7 +4,10 @@
 #include <sourcemod>
 #include <sdktools>
 #include <LagReducer>
+
+#undef REQUIRE_PLUGIN
 #tryinclude <AFKManager>
+#define REQUIRE_PLUGIN
 
 #include "loghelper.inc"
 #include "utilshelper.inc"
@@ -56,14 +59,15 @@ Handle g_hHudSync = INVALID_HANDLE;
 Handle g_hUpdateTimer = INVALID_HANDLE;
 
 bool g_bIsCSGO = false;
-bool g_bKnifeMode = false;
+bool g_Plugin_KnifeMode = false;
+bool g_Plugin_AFK = false;
 
 public Plugin myinfo =
 {
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.5"
+	version      = "1.9.6"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -146,23 +150,24 @@ public void OnPluginEnd()
 
 public void OnAllPluginsLoaded()
 {
-    g_bKnifeMode = LibraryExists("KnifeMode");
+	g_Plugin_KnifeMode = LibraryExists("KnifeMode");
+	g_Plugin_AFK = LibraryExists("AFKManager");
 }
 
 public void OnLibraryAdded(const char[] name)
 {
-    if (StrEqual(name, "KnifeMode"))
-    {
-        g_bKnifeMode = true;
-    }
+	if (StrEqual(name, "KnifeMode"))
+		g_Plugin_KnifeMode = true;
+	if (StrEqual(name, "AFKManager"))
+		g_Plugin_AFK = true;
 }
 
 public void OnLibraryRemoved(const char[] name)
 {
-    if (StrEqual(name, "KnifeMode"))
-    {
-        g_bKnifeMode = false;
-    }
+	if (StrEqual(name, "KnifeMode"))
+		g_Plugin_KnifeMode = false;
+	if (StrEqual(name, "AFKManager"))
+		g_Plugin_AFK = false;
 }
 
 public void OnConVarChange(ConVar convar, char[] oldValue, char[] newValue)
@@ -396,7 +401,7 @@ public void OnMapEnd()
 		KillTimer(g_hUpdateTimer);
 		g_hUpdateTimer = INVALID_HANDLE;
 	}
-	if (g_bKnifeMode)
+	if (g_Plugin_KnifeMode)
 		g_cvDisplayType.IntValue = iDefaultType;
 }
 
@@ -553,7 +558,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 {
 	g_iPlayerWinner = {-1, -1, -1};
 
-	if (g_bKnifeMode)
+	if (g_Plugin_KnifeMode)
 		g_cvDisplayType.IntValue = 1;
 
 	UpdateDefendersList(INVALID_HANDLE);
@@ -567,7 +572,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 		return;
 
 	char sBuffer[512];
-	if (!g_bKnifeMode)
+	if (!g_Plugin_KnifeMode)
 		Format(sBuffer, sizeof(sBuffer), "TOP DEFENDERS:");
 	else
 		Format(sBuffer, sizeof(sBuffer), "TOP KNIFERS:");
@@ -576,7 +581,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	{
 		if (g_iSortedList[i][0] > 0)
 		{
-			if (!g_bKnifeMode)
+			if (!g_Plugin_KnifeMode)
 			{
 				if (GetConVarInt(g_cvDisplayType) == 0)
 					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d DMG", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1]);
@@ -623,29 +628,28 @@ public void OnClientHurt(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 	if (client == victim || (IsPlayerAlive(client) && ZR_IsClientZombie(client)))
 		return;
 
+#if defined _AFKManager_Included
+	if (g_Plugin_AFK)
+	{
+		int currentidletime = GetClientIdleTime(victim);
+		if (g_cvIdleTime.IntValue < 0)
+			g_cvIdleTime.IntValue = 0;
+
+		if (currentidletime > g_cvIdleTime.IntValue)
+			return;
+	}
+#endif
+
 	int iDamage = hEvent.GetInt("dmg_health");
 
 	g_iPlayerDamage[client] += iDamage;
-
-#if defined _AFKManager_Included
-	if (IsFakeClient(victim) || IsClientObserver(victim))
-		return;
-
-	int currentidletime = GetClientIdleTime(victim);
-	if (g_cvIdleTime.IntValue < 0)
-		g_cvIdleTime.IntValue = 0;
-
-	if (currentidletime > g_cvIdleTime.IntValue)
-		return;
-#endif
-
 	g_iPlayerDamageEvent[client] += iDamage;
 
 	if (g_iPlayerDamageEvent[client] >= g_cvEvent.IntValue)
 	{
 		g_iPlayerDamageEvent[client] -= g_cvEvent.IntValue;
 
-		if (!g_bKnifeMode)
+		if (!g_Plugin_KnifeMode)
 			LogPlayerEvent(client, "triggered", "damage_zombie");
 	}
 }
@@ -856,8 +860,8 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 			(g_iPlayerWinner[1] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal2.IntValue) ||
 			(g_iPlayerWinner[2] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal3.IntValue)))
 		{
-			FormatEx(notifHudMsg, sizeof(notifHudMsg), "You have been protected from being Mother Zombie\nsince you were the Top %s last round!", g_bKnifeMode ? "Knifer" : "Defender");
-			FormatEx(notifChatMsg, sizeof(notifChatMsg), "You have been protected from being Mother Zombie since you were the Top %s last round!", g_bKnifeMode ? "Knifer" : "Defender");
+			FormatEx(notifHudMsg, sizeof(notifHudMsg), "You have been protected from being Mother Zombie\nsince you were the Top %s last round!", g_Plugin_KnifeMode ? "Knifer" : "Defender");
+			FormatEx(notifChatMsg, sizeof(notifChatMsg), "You have been protected from being Mother Zombie since you were the Top %s last round!", g_Plugin_KnifeMode ? "Knifer" : "Defender");
 		}
 		else if (g_iPlayerImmune[client] == true)
 		{
