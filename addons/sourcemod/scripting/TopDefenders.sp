@@ -67,7 +67,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.6"
+	version      = "1.9.7"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -80,6 +80,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
+	LoadTranslations("common.phrases");
 	LoadTranslations("plugin.topdefenders.phrases");
 
 	g_hCVar_Protection         = CreateConVar("sm_topdefenders_protection", "1", "Enable mother zombie immunity perks", FCVAR_NONE, true, 0.0, true, 1.0);
@@ -114,6 +115,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_togglecrown",    OnToggleCrown, "Enable/disable crown model");
 	RegConsoleCmd("sm_toggledialog",   OnToggleDialog, "Enable/disable top left dialog");
 	RegConsoleCmd("sm_toggleimmunity", OnToggleImmunity, "Enable/disable zombie protection");
+	RegConsoleCmd("sm_tdstatus",       OnToggleStatus, "Show Top Defenders status - sm_tdstatus <target|#userid>");
 
 	RegAdminCmd("sm_immunity",	Command_Immunity,	ADMFLAG_CONVARS,	"Give mother zombie immunity to a player");
 	RegAdminCmd("sm_debugcrown", Command_DebugCrown, ADMFLAG_ROOT, "Spawn the crown model on yourself");
@@ -191,6 +193,78 @@ public Action OnToggleImmunity(int client, int args)
 {
 	ToggleImmunity(client);
 	return Plugin_Handled;
+}
+
+public Action OnToggleStatus(int client, int args)
+{
+	int rank = 0;
+	bool ranked = false;
+
+	if (args < 1)
+	{
+		while (rank < g_iSortedCount)
+		{
+			if (g_iSortedList[rank][0] == client)
+			{
+				ranked = true;
+				break;
+			}
+			rank++;
+		}
+
+		if (!ranked)
+			CReplyToCommand(client, "{green}%t {white}You are not ranked yet", "Chat Prefix");
+		else
+		{
+			switch(rank)
+			{
+				case(0): CReplyToCommand(client, "{green}%t {white}You are currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Previous: -%d DMG)", "Chat Prefix", rank + 1, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
+				case(1): CReplyToCommand(client, "{green}%t {white}You are currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Next: +%d DMG)", "Chat Prefix", rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1]);
+				default: CReplyToCommand(client, "{green}%t {white}You are currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Next: +%d DMG | First: +%d DMG)", "Chat Prefix", rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
+			}
+		}
+
+		return Plugin_Handled;
+	}
+
+	char buffer[32];
+	GetCmdArg(1, buffer, sizeof(buffer));
+
+	int index = StringToInt(buffer);
+	if (index == 0 || index > MaxClients)
+	{
+		int target = -1;
+		if((target = FindTarget(client, buffer, false, false)) == -1) return Plugin_Handled;
+
+		while (rank < g_iSortedCount)
+		{
+			if (g_iSortedList[rank][0] == target)
+			{
+				ranked = true;
+				break;
+			}
+			rank++;
+		}
+
+		if (!ranked)
+			CReplyToCommand(client, "{green}%t {white}Player not ranked yet", "Chat Prefix", target);	
+		else
+		{
+			switch(rank)
+			{
+				case(0): CReplyToCommand(client, "{green}%t {white}%N is currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Previous: -%d DMG)", "Chat Prefix", target, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
+				case(1): CReplyToCommand(client, "{green}%t {white}%N is currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Next: +%d DMG)", "Chat Prefix", target, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1]);
+				default: CReplyToCommand(client, "{green}%t {white}%N is currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Next: +%d DMG | First: +%d DMG)", "Chat Prefix", target, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
+			}
+		}
+
+		return Plugin_Handled;
+	}
+	else
+	{
+		CPrintToChat(client, "{green}%t {white}%t", "Chat Prefix", "Player no longer available", index);
+		return Plugin_Handled;
+	}
 }
 
 public void ResetImmunity()
@@ -300,19 +374,19 @@ public void ToggleCrown(int client)
 				CreateHat_CSS(client);
 		}
 	}
-	CPrintToChat(client, "{green}%t {default}%t", "Chat Prefix", g_bHideCrown[client] ? "Crown Disabled" : "Crown Enabled");
+	CPrintToChat(client, "{green}%t {white}%t", "Chat Prefix", g_bHideCrown[client] ? "Crown Disabled" : "Crown Enabled");
 }
 
 public void ToggleDialog(int client)
 {
 	g_bHideDialog[client] = !g_bHideDialog[client];
-	CPrintToChat(client, "{green}%t {default}%t", "Chat Prefix", g_bHideDialog[client] ? "Dialog Disabled" : "Dialog Enabled");
+	CPrintToChat(client, "{green}%t {white}%t", "Chat Prefix", g_bHideDialog[client] ? "Dialog Disabled" : "Dialog Enabled");
 }
 
 public void ToggleImmunity(int client)
 {
 	g_bProtection[client] = !g_bProtection[client];
-	CPrintToChat(client, "{green}%t {default}%t", "Chat Prefix", g_bProtection[client] ? "Immunity Disabled" : "Immunity Enabled");
+	CPrintToChat(client, "{green}%t {white}%t", "Chat Prefix", g_bProtection[client] ? "Immunity Disabled" : "Immunity Enabled");
 }
 
 public void ShowSettingsMenu(int client)
@@ -629,7 +703,7 @@ public void OnClientHurt(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 		return;
 
 #if defined _AFKManager_Included
-	if (g_Plugin_AFK)
+	if (g_Plugin_AFK && !IsFakeClient(victim))
 	{
 		int currentidletime = GetClientIdleTime(victim);
 		if (g_cvIdleTime.IntValue < 0)
@@ -838,10 +912,7 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 			EndMessage();
 		}
 	}
-	if (g_bIsCSGO)
-		CPrintToChat(client, "{green}%t {default}%s", "Chat Prefix", notifChatMsg);
-	else
-		CPrintToChat(client, "{green}%t {white}%s", "Chat Prefix", notifChatMsg);
+	CPrintToChat(client, "{green}%t {white}%s", "Chat Prefix", notifChatMsg);
 
 	EmitSoundToClient(client, HOLY_SOUND_COMMON, .volume=1.0);
 }
