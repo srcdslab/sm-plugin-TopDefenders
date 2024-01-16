@@ -198,73 +198,49 @@ public Action OnToggleImmunity(int client, int args)
 public Action OnToggleStatus(int client, int args)
 {
 	int rank = 0;
-	bool ranked = false;
+	int target = -1;
 
 	if (args < 1)
+		target = client;
+	else
 	{
-		while (rank < g_iSortedCount)
-		{
-			if (g_iSortedList[rank][0] == client)
-			{
-				ranked = true;
-				break;
-			}
-			rank++;
-		}
+		char sArg[MAX_NAME_LENGTH];
+		GetCmdArg(1, sArg, sizeof(sArg));
+		target = FindTarget(client, sArg, false, true);
+	}
 
-		if (!ranked)
-			CReplyToCommand(client, "{green}%t {white}You are not ranked yet", "Chat Prefix");
-		else
-		{
-			switch(rank)
-			{
-				case(0): CReplyToCommand(client, "{green}%t {white}You are currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Previous: -%d DMG)", "Chat Prefix", rank + 1, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
-				case(1): CReplyToCommand(client, "{green}%t {white}You are currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Next: +%d DMG)", "Chat Prefix", rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1]);
-				default: CReplyToCommand(client, "{green}%t {white}You are currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Next: +%d DMG | First: +%d DMG)", "Chat Prefix", rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
-			}
-		}
+	SetGlobalTransTarget(client);
 
+	if (target == -1)
+	{
+		CReplyToCommand(client, "{green}%t {white}%t", "Chat Prefix", "Player no longer available");
 		return Plugin_Handled;
 	}
 
-	char buffer[32];
-	GetCmdArg(1, buffer, sizeof(buffer));
-
-	int index = StringToInt(buffer);
-	if (index == 0 || index > MaxClients)
+	if (target > 0 && target <= MaxClients)
 	{
-		int target = -1;
-		if((target = FindTarget(client, buffer, false, false)) == -1) return Plugin_Handled;
-
 		while (rank < g_iSortedCount)
 		{
 			if (g_iSortedList[rank][0] == target)
-			{
-				ranked = true;
 				break;
-			}
 			rank++;
 		}
 
-		if (!ranked)
-			CReplyToCommand(client, "{green}%t {white}Player not ranked yet", "Chat Prefix", target);	
+		if (rank > g_iSortedCount)
+			CReplyToCommand(client, "{green}%t {white}%t", "Chat Prefix", "Not ranked");
 		else
 		{
 			switch(rank)
 			{
-				case(0): CReplyToCommand(client, "{green}%t {white}%N is currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Previous: -%d DMG)", "Chat Prefix", target, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
-				case(1): CReplyToCommand(client, "{green}%t {white}%N is currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Next: +%d DMG)", "Chat Prefix", target, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1]);
-				default: CReplyToCommand(client, "{green}%t {white}%N is currently Top Defender {blue}#%d {white}with {olive}%d DMG {lightgreen}(Next: +%d DMG | First: +%d DMG)", "Chat Prefix", target, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
+				case(0): CReplyToCommand(client, "{green}%t {white}%t %t", "Chat Prefix", "TopDefender Position", target, rank + 1, g_iSortedList[rank][1], "TopDefender Position First", client, g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
+
+				case(1): CReplyToCommand(client, "{green}%t {white}%t %t", "Chat Prefix", "TopDefender Position", target, rank + 1, g_iSortedList[rank][1], "TopDefender Position Next", client, g_iSortedList[rank - 1][1] - g_iSortedList[rank][1]);
+
+				default: CReplyToCommand(client, "{green}%t {white}%t %t", "Chat Prefix", "TopDefender Position", target, rank + 1, g_iSortedList[rank][1], "TopDefender Position Second", client, g_iSortedList[rank - 1][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
 			}
 		}
-
-		return Plugin_Handled;
 	}
-	else
-	{
-		CPrintToChat(client, "{green}%t {white}%t", "Chat Prefix", "Player no longer available", index);
-		return Plugin_Handled;
-	}
+	return Plugin_Handled;
 }
 
 public void ResetImmunity()
@@ -289,9 +265,11 @@ public Action Command_DebugCrown(int client, int args)
 
 public Action Command_Immunity(int client, int args)
 {
+	SetGlobalTransTarget(client);
+
 	if (args < 2)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_immunity <target> <0|1>");
+		CReplyToCommand(client, "{green}[SM] {default}%t", "Immunity Usage");
 		return Plugin_Handled;
 	}
 
@@ -299,9 +277,9 @@ public Action Command_Immunity(int client, int args)
 	GetCmdArg(1, pattern, sizeof(pattern));
 	GetCmdArg(2, immunity, sizeof(immunity));
 
-	if(StrEqual(pattern, "@all", false))
+	if (strcmp(pattern, "@all", false) == 0)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Cannot perform an immunity on all players!");
+		CReplyToCommand(client, "{green}[SM] {default}%t", "Cant Immunity All");
 		return Plugin_Handled;
 	}
 
@@ -326,11 +304,15 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 
 	int count = ProcessTargetString(pattern, client, targets, MAXPLAYERS, COMMAND_FILTER_CONNECTED | COMMAND_FILTER_NO_IMMUNITY, sTargetName, sizeof(sTargetName), ml);
 
+	SetGlobalTransTarget(client);
 	if (count <= 0)
 	{
 		if (IsValidClient(client))
 		{
-			CPrintToChat(client,"{green}%t {default}%s", "Chat Prefix", (count < 0) ? "Bad target" : "No target");
+			char sBad[64], sNo[64];
+			FormatEx(sBad, sizeof(sBad), "%t", "Bad Target");
+			FormatEx(sNo, sizeof(sNo), "%t", "No Target");
+			CPrintToChat(client,"{green}%t {default}%s", "Chat Prefix", (count < 0) ? sBad : sNo);
 			return;
 		}
 	}
@@ -343,8 +325,13 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 	
 	if (bNotify)
 	{
-		CShowActivity2(client, "{green}[TopDefenders] {olive}", "{default}have {green}%s {default}mother zombie immunity on {olive}%s{default}.", immunity ? "enabled" : "disabled", sTargetName);
-		
+		char sEnabled[64], sDisabled[64];
+		FormatEx(sEnabled, sizeof(sEnabled), "%t", "Enabled");
+		FormatEx(sDisabled, sizeof(sDisabled), "%t", "Disabled");
+
+		// ShowActivity doesnt support prefix translated..
+		CShowActivity2(client, "{green}[TopDefenders]{olive} ", "%t", "Immunity Status", immunity ? sEnabled : sDisabled, sTargetName);
+
 		if(count > 1)
 			LogAction(client, -1, "[TopDefenders] \"%L\" have %s mother zombie immunity on \"%s\"", client, immunity ? "Enabled" : "Disabled", sTargetName);
 		else
@@ -374,18 +361,21 @@ public void ToggleCrown(int client)
 				CreateHat_CSS(client);
 		}
 	}
+	SetGlobalTransTarget(client);
 	CPrintToChat(client, "{green}%t {white}%t", "Chat Prefix", g_bHideCrown[client] ? "Crown Disabled" : "Crown Enabled");
 }
 
 public void ToggleDialog(int client)
 {
 	g_bHideDialog[client] = !g_bHideDialog[client];
+	SetGlobalTransTarget(client);
 	CPrintToChat(client, "{green}%t {white}%t", "Chat Prefix", g_bHideDialog[client] ? "Dialog Disabled" : "Dialog Enabled");
 }
 
 public void ToggleImmunity(int client)
 {
 	g_bProtection[client] = !g_bProtection[client];
+	SetGlobalTransTarget(client);
 	CPrintToChat(client, "{green}%t {white}%t", "Chat Prefix", g_bProtection[client] ? "Immunity Disabled" : "Immunity Enabled");
 }
 
@@ -394,7 +384,7 @@ public void ShowSettingsMenu(int client)
 	Menu menu = new Menu(MenuHandler_MainMenu);
 
 	menu.SetTitle("%T", "Cookie Menu Title", client);
-
+	SetGlobalTransTarget(client);
 	AddMenuItemTranslated(menu, "0", "%t: %t", "Crown",    g_bHideCrown[client]  ? "Disabled" : "Enabled");
 	AddMenuItemTranslated(menu, "1", "%t: %t", "Dialog",   g_bHideDialog[client] ? "Disabled" : "Enabled");
 	AddMenuItemTranslated(menu, "2", "%t: %t", "Immunity", g_bProtection[client] ? "Disabled" : "Enabled");
@@ -410,7 +400,7 @@ public void MenuHandler_CookieMenu(int client, CookieMenuAction action, any info
 	{
 		case(CookieMenuAction_DisplayOption):
 		{
-			Format(buffer, maxlen, "%T", "Cookie Menu", client);
+			Format(buffer, maxlen, "%T", "Menu Title Defender", client);
 		}
 		case(CookieMenuAction_SelectOption):
 		{
@@ -647,9 +637,11 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 	char sBuffer[512];
 	if (!g_Plugin_KnifeMode)
-		Format(sBuffer, sizeof(sBuffer), "TOP DEFENDERS:");
+		Format(sBuffer, sizeof(sBuffer), "%t:", "Menu Title Defender");
 	else
-		Format(sBuffer, sizeof(sBuffer), "TOP KNIFERS:");
+		Format(sBuffer, sizeof(sBuffer), "%t:", "Menu Title Knifer");
+
+	StringToUpperCase(sBuffer);
 
 	for (int i = 0; i < sizeof(g_iPlayerWinner); i++)
 	{
@@ -658,14 +650,14 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 			if (!g_Plugin_KnifeMode)
 			{
 				if (GetConVarInt(g_cvDisplayType) == 0)
-					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d DMG", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1]);
+					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %t", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], "DMG");
 				else if (GetConVarInt(g_cvDisplayType) == 1)
-					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d KILLS", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1]);
+					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %t", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], "KILLS");
 				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_defender" : (i == 1 ? "second_defender" : (i == 2 ? "third_defender" : "super_defender")));
 			}
 			else
 			{
-				Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d KILLS", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1]);
+				Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %t", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], "KILLS");
 				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_knifer" : (i == 1 ? "second_knifer" : (i == 2 ? "third_knifer" : "super_knifer")));
 			}
 
@@ -674,7 +666,9 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	}
 
 	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 1)
+	{
 		CPrintToChatAll("{green}%s", sBuffer);
+	}
 
 	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 2)
 	{
@@ -925,28 +919,27 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 
 	if (motherInfect)
 	{
+		SetGlobalTransTarget(client);
 		if (g_hCVar_Protection.BoolValue
 			&& !g_bProtection[client]
 			&& ((g_iPlayerWinner[0] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal1.IntValue) ||
 			(g_iPlayerWinner[1] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal2.IntValue) ||
 			(g_iPlayerWinner[2] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal3.IntValue)))
 		{
-			FormatEx(notifHudMsg, sizeof(notifHudMsg), "You have been protected from being Mother Zombie\nsince you were the Top %s last round!", g_Plugin_KnifeMode ? "Knifer" : "Defender");
-			FormatEx(notifChatMsg, sizeof(notifChatMsg), "You have been protected from being Mother Zombie since you were the Top %s last round!", g_Plugin_KnifeMode ? "Knifer" : "Defender");
+			char sBuffer[64];
+			sBuffer = g_Plugin_KnifeMode ? "%t" : "%t", "Knifer", "Defender";
+			FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t \n%t", "protected", sBuffer);
+			FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t %t %s", "protected", "The top", sBuffer);
 		}
 		else if (g_iPlayerImmune[client] == true)
 		{
-			notifHudMsg = "An administrator has protected you\nfrom being Mother Zombie";
-			notifChatMsg = "An administrator has protected you from being Mother Zombie";
+			FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t", "Admin Protection");
+			FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t", "Admin Protection");
 		}
 
 		if (notifHudMsg[0] != '\0' && notifChatMsg[0] != '\0')
 		{
-			SetImmunity(
-				client,
-				notifHudMsg,
-				notifChatMsg
-			);
+			SetImmunity(client, notifHudMsg, notifChatMsg);
 			return Plugin_Handled;
 		}
 	}
