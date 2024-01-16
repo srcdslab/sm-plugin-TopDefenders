@@ -158,17 +158,17 @@ public void OnAllPluginsLoaded()
 
 public void OnLibraryAdded(const char[] name)
 {
-	if (StrEqual(name, "KnifeMode"))
+	if (strcmp(name, "KnifeMode", false) == 0)
 		g_Plugin_KnifeMode = true;
-	if (StrEqual(name, "AFKManager"))
+	if (strcmp(name, "AFKManager", false) == 0)
 		g_Plugin_AFK = true;
 }
 
 public void OnLibraryRemoved(const char[] name)
 {
-	if (StrEqual(name, "KnifeMode"))
+	if (strcmp(name, "KnifeMode", false) == 0)
 		g_Plugin_KnifeMode = false;
-	if (StrEqual(name, "AFKManager"))
+	if (strcmp(name, "AFKManager", false) == 0)
 		g_Plugin_AFK = false;
 }
 
