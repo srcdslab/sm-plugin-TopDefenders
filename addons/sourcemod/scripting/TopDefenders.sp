@@ -57,6 +57,7 @@ int g_iEntIndex[MAXPLAYERS + 1] = { -1, ... };
 
 Handle g_hHudSync = INVALID_HANDLE;
 Handle g_hUpdateTimer = INVALID_HANDLE;
+Handle g_hClientProtectedForward = INVALID_HANDLE;
 
 bool g_bIsCSGO = false;
 bool g_Plugin_KnifeMode = false;
@@ -105,6 +106,8 @@ public void OnPluginStart()
 	g_hCookie_HideDialog = RegClientCookie("topdefenders_hidedialog", "Enable/disable top left dialog", CookieAccess_Private);
 	g_hCookie_Protection = RegClientCookie("topdefenders_protection", "Enable/disable zombie protection", CookieAccess_Private);
 
+	g_hClientProtectedForward = CreateGlobalForward("TopDefenders_ClientProtected", ET_Ignore, Param_Cell);
+
 	g_hHudSync = CreateHudSynchronizer();
 
 	AutoExecConfig(true);
@@ -141,6 +144,12 @@ public void OnPluginEnd()
 	{
 		CloseHandle(g_hHudSync);
 		g_hHudSync = INVALID_HANDLE;
+	}
+
+	if (g_hClientProtectedForward != INVALID_HANDLE)
+	{
+		CloseHandle(g_hClientProtectedForward);
+		g_hClientProtectedForward = INVALID_HANDLE;
 	}
 
 	for (int i = 1; i <= MaxClients; i++)
@@ -940,6 +949,9 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 		if (notifHudMsg[0] != '\0' && notifChatMsg[0] != '\0')
 		{
 			SetImmunity(client, notifHudMsg, notifChatMsg);
+			Call_StartForward(g_hClientProtectedForward);
+			Call_PushCell(client);
+			Call_Finish();
 			return Plugin_Handled;
 		}
 	}
