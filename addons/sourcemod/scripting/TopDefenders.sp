@@ -4,6 +4,7 @@
 #include <sourcemod>
 #include <sdktools>
 #include <LagReducer>
+#include <smlib>
 
 #undef REQUIRE_PLUGIN
 #tryinclude <AFKManager>
@@ -644,13 +645,13 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	if (!g_iSortedCount)
 		return;
 
-	char sBuffer[512];
+	char sBuffer[512], sMenuTitle[128];
 	if (!g_Plugin_KnifeMode)
-		Format(sBuffer, sizeof(sBuffer), "%t:", "Menu Title Defender");
+		Format(sMenuTitle, sizeof(sMenuTitle), "%t:", "Menu Title Defender");
 	else
-		Format(sBuffer, sizeof(sBuffer), "%t:", "Menu Title Knifer");
+		Format(sMenuTitle, sizeof(sMenuTitle), "%t:", "Menu Title Knifer");
 
-	StringToUpperCase(sBuffer);
+	String_ToUpper(sMenuTitle, sBuffer, sizeof(sBuffer));
 
 	for (int i = 0; i < sizeof(g_iPlayerWinner); i++)
 	{
