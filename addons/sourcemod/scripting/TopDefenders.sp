@@ -936,10 +936,12 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 			(g_iPlayerWinner[1] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal2.IntValue) ||
 			(g_iPlayerWinner[2] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal3.IntValue)))
 		{
-			char sBuffer[64];
-			sBuffer = g_Plugin_KnifeMode ? "%t" : "%t", "Knifer", "Defender";
-			FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t \n%t", "protected", sBuffer);
-			FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t %t %s", "protected", "The top", sBuffer);
+			char sBuffer[64], sKnifer[64], sDefender[64];
+			FormatEx(sKnifer, sizeof(sKnifer), "%t", "Knifer");
+			FormatEx(sDefender, sizeof(sDefender), "%t", "Defender");
+			FormatEx(sBuffer, sizeof(sBuffer), "%s", g_Plugin_KnifeMode ? sKnifer : sDefender);
+			FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t \n%t", "protected", "The top", sBuffer);
+			FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t %t", "protected", "The top", sBuffer);
 		}
 		else if (g_iPlayerImmune[client] == true)
 		{
