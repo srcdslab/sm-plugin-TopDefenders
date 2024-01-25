@@ -9,6 +9,11 @@
 #define _TopDefenders_included
 
 /**
+ * Called after giving player immunity
+ */
+forward void TopDefenders_ClientProtected(int client);
+
+/**
  * Check if the given client is top defender
  *
  * @param client     Any valid client index.

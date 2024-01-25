@@ -4,9 +4,17 @@
 	{
 		"en"    "[TopDefenders]"
 	}
-	"Cookie Menu"
+	"ShowActivity Prefix"
+	{
+		"en"    "[TopDefenders]"
+	}
+	"Menu Title Defender"
 	{
 		"en"    "Top Defenders"
+	}
+	"Menu Title Knifer"
+	{
+		"en"    "Top Knifers"
 	}
 	"Cookie Menu Title"
 	{
@@ -19,6 +27,14 @@
 	"Disabled"
 	{
 		"en"    "Disabled"
+	}
+	"DMG"
+	{
+		"en"    "DMG"
+	}
+	"KILLS"
+	{
+		"en"    "KILLS"
 	}
 	"Crown"
 	{
@@ -48,6 +64,11 @@
 	{
 		"en"    "Immunity"
 	}
+	"Immunity Status"
+	{
+		"#format" "{1:s},{2:s}"
+		"en"    "{default}have {lightgreen}{1} {default}mother zombie immunity on {olive}{2}"
+	}
 	"Immunity Enabled"
 	{
 		"en"    "You will now be protected from being mother zombie"
@@ -56,8 +77,65 @@
 	{
 		"en"    "You will no longer be protected from being mother zombie"
 	}
+	"Admin Protection"
+	{
+		"en"	"An administrator has protected you from being Mother Zombie"
+	}
 	"protected"
 	{
-		"en"    "You have been protected from being mother zombie, since you where top defender last round."
+		"en"    "You have been protected from being Mother Zombie."
+	}
+	"The top"
+	{
+		"#format" "{1:s}"
+		"en"    "Since you were the Top {1} last round!"
+	}
+	"Knifer"
+	{
+		"en"	"Knifer"
+	}
+	"Defender"
+	{
+		"en"	"Defender"
+	}
+	"Not ranked"
+	{
+		"en"	"Not ranked yet"
+	}
+	"TopDefender Position"
+	{
+		"#format" "{1:N},{2:d},{3:d}"
+		"en"	"{1} is currently Top Defender #{2} with {3} DMG"
+	}
+	"TopDefender Position First"
+	{
+		"#format" "{1:d}"
+		"en"	"(Previous: -{1} DMG)"
+	}
+	"TopDefender Position Second"
+	{
+		"#format" "{1:d},{2:d}"
+		"en"	"(Next: +{1} DMG | First: +{2} DMG)"
+	}
+	"TopDefender Position Next"
+	{
+		"#format" "{1:d}"
+		"en"	"(Next: +{1} DMG)"
+	}
+	"Immunity Usage"
+	{
+		"en"	"Usage: sm_immunity <target> <0|1>"
+	}
+	"Cant Immunity All"
+	{
+		"en"	"Cannot perform an immunity on all players!"
+	}
+	"Bad Target"
+	{
+		"en"	"Invalid target"
+	}
+	"No Target"
+	{
+		"en"	"No target"
 	}
 }
