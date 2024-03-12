@@ -691,12 +691,13 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	bool bDynamicAvailable = false;
 	int iHUDChannel = -1;
 
-#if defined _DynamicChannels_included_
 	int iChannel = g_cvHUDChannel.IntValue;
 	if (iChannel < 0 || iChannel > 6)
 		iChannel = 1;
 
 	bDynamicAvailable = g_bPlugin_DynamicChannels && CanTestFeatures() && GetFeatureStatus(FeatureType_Native, "GetDynamicChannel") == FeatureStatus_Available;
+
+#if defined _DynamicChannels_included_
 	if (bDynamicAvailable)
 		iHUDChannel = GetDynamicChannel(iChannel);
 #endif
