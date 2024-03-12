@@ -8,6 +8,7 @@
 
 #undef REQUIRE_PLUGIN
 #tryinclude <AFKManager>
+#tryinclude <DynamicChannels>
 #define REQUIRE_PLUGIN
 
 #include "loghelper.inc"
@@ -35,7 +36,7 @@ ConVar g_hCVar_ProtectionMinimal1;
 ConVar g_hCVar_ProtectionMinimal2;
 ConVar g_hCVar_ProtectionMinimal3;
 
-ConVar g_cvHat, g_cvEvent, g_cvIdleTime, g_cvPrint, g_cvPrintPos, g_cvPrintColor, g_cvDisplayType, g_cvScoreboardType;
+ConVar g_cvHat, g_cvEvent, g_cvIdleTime, g_cvPrint, g_cvPrintPos, g_cvPrintColor, g_cvDisplayType, g_cvScoreboardType, g_cvHUDChannel;
 
 int g_iPrintColor[3];
 float g_fPrintPos[2];
@@ -61,6 +62,7 @@ Handle g_hUpdateTimer = INVALID_HANDLE;
 Handle g_hClientProtectedForward = INVALID_HANDLE;
 
 bool g_bIsCSGO = false;
+bool g_bPlugin_DynamicChannels = false;
 bool g_Plugin_KnifeMode = false;
 bool g_Plugin_AFK = false;
 
@@ -69,7 +71,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.7"
+	version      = "1.9.8"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -98,6 +100,7 @@ public void OnPluginStart()
 	g_cvPrint = CreateConVar("sm_topdefenders_print", "0", "2 - Display in hud, 1 - In chat, 0 - Both", _, true, 0.0, true, 2.0);
 	g_cvPrintPos = CreateConVar("sm_topdefenders_print_position", "0.02 0.25", "The X and Y position for the hud.");
 	g_cvPrintColor = CreateConVar("sm_topdefenders_print_color", "255 255 255", "RGB color value for the hud.");
+	g_cvHUDChannel = CreateConVar("sm_topdefenders_hud_channel", "1", "The channel for the hud if using DynamicChannels", _, true, 0.0, true, 6.0);
 
 	g_cvPrint.AddChangeHook(OnConVarChange);
 	g_cvPrintPos.AddChangeHook(OnConVarChange);
@@ -162,12 +165,15 @@ public void OnPluginEnd()
 
 public void OnAllPluginsLoaded()
 {
+	g_bPlugin_DynamicChannels = LibraryExists("DynamicChannels");
 	g_Plugin_KnifeMode = LibraryExists("KnifeMode");
 	g_Plugin_AFK = LibraryExists("AFKManager");
 }
 
 public void OnLibraryAdded(const char[] name)
 {
+	if (strcmp(name, "DynamicChannels", false) == 0)
+		g_bPlugin_DynamicChannels = true;
 	if (strcmp(name, "KnifeMode", false) == 0)
 		g_Plugin_KnifeMode = true;
 	if (strcmp(name, "AFKManager", false) == 0)
@@ -176,6 +182,8 @@ public void OnLibraryAdded(const char[] name)
 
 public void OnLibraryRemoved(const char[] name)
 {
+	if (strcmp(name, "DynamicChannels", false) == 0)
+		g_bPlugin_DynamicChannels = false;
 	if (strcmp(name, "KnifeMode", false) == 0)
 		g_Plugin_KnifeMode = false;
 	if (strcmp(name, "AFKManager", false) == 0)
@@ -680,6 +688,19 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 		CPrintToChatAll("{green}%s", sBuffer);
 	}
 
+	bool bDynamicAvailable = false;
+	int iHUDChannel = -1;
+
+#if defined _DynamicChannels_included_
+	int iChannel = g_cvHUDChannel.IntValue;
+	if (iChannel < 0 || iChannel > 6)
+		iChannel = 1;
+
+	bDynamicAvailable = g_bPlugin_DynamicChannels && CanTestFeatures() && GetFeatureStatus(FeatureType_Native, "GetDynamicChannel") == FeatureStatus_Available;
+	if (bDynamicAvailable)
+		iHUDChannel = GetDynamicChannel(iChannel);
+#endif
+
 	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 2)
 	{
 		SetHudTextParams(g_fPrintPos[0], g_fPrintPos[1], 5.0, g_iPrintColor[0], g_iPrintColor[1], g_iPrintColor[2], 255, 0, 0.0, 0.1, 0.1);
@@ -689,8 +710,13 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 			if (!IsValidClient(client))
 				continue;
 
-			ClearSyncHud(client, g_hHudSync);
-			ShowSyncHudText(client, g_hHudSync, "%s", sBuffer);
+			if (bDynamicAvailable)
+				ShowHudText(client, iHUDChannel, "%s", sBuffer);
+			else
+			{
+				ClearSyncHud(client, g_hHudSync);
+				ShowSyncHudText(client, g_hHudSync, "%s", sBuffer);
+			}
 		}
 	}
 }
@@ -886,7 +912,7 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 			PbSetInt(hMessageInfection, "effect", 0);
 			PbSetColor(hMessageInfection, "clr1", {255, 255, 255, 255});
 			PbSetColor(hMessageInfection, "clr2", {255, 255, 255, 255});
-			PbSetVector2D(hMessageInfection, "pos", view_as<float>({-1.0, 0.3}));
+			PbSetVector2D(hMessageInfection, "pos", view_as<float>({-1.0, 0.2}));
 			PbSetFloat(hMessageInfection, "fade_in_time", 0.1);
 			PbSetFloat(hMessageInfection, "fade_out_time", 0.1);
 			PbSetFloat(hMessageInfection, "hold_time", 5.0);
@@ -898,7 +924,7 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 		{
 			BfWriteByte(hMessageInfection, 50);
 			BfWriteFloat(hMessageInfection, -1.0);
-			BfWriteFloat(hMessageInfection, 0.3);
+			BfWriteFloat(hMessageInfection, 0.2);
 			BfWriteByte(hMessageInfection, 0);
 			BfWriteByte(hMessageInfection, 255);
 			BfWriteByte(hMessageInfection, 255);
