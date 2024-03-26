@@ -71,7 +71,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.8"
+	version      = "1.9.9"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -218,14 +218,14 @@ public Action OnToggleStatus(int client, int args)
 	int rank = 0;
 	int target = -1;
 
-	if (args < 1)
-		target = client;
-	else
+	if (args != 0)
 	{
 		char sArg[MAX_NAME_LENGTH];
 		GetCmdArg(1, sArg, sizeof(sArg));
 		target = FindTarget(client, sArg, false, true);
 	}
+	else
+		target = client;
 
 	SetGlobalTransTarget(client);
 
