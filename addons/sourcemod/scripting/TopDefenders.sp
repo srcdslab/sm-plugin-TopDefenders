@@ -71,7 +71,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.9"
+	version      = "1.9.10"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -248,14 +248,13 @@ public Action OnToggleStatus(int client, int args)
 			CReplyToCommand(client, "{green}%t {white}%t", "Chat Prefix", "Not ranked");
 		else
 		{
-			switch(rank)
-			{
-				case(0): CReplyToCommand(client, "{green}%t {white}%t %t", "Chat Prefix", "TopDefender Position", target, rank + 1, g_iSortedList[rank][1], "TopDefender Position First", client, g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
+			char sType[64];
+			if (GetConVarInt(g_cvDisplayType) != 0 || g_Plugin_KnifeMode)
+				FormatEx(sType, sizeof(sType), "%t", "KILLS");
+			else
+				FormatEx(sType, sizeof(sType), "%t", "DMG");
 
-				case(1): CReplyToCommand(client, "{green}%t {white}%t %t", "Chat Prefix", "TopDefender Position", target, rank + 1, g_iSortedList[rank][1], "TopDefender Position Next", client, g_iSortedList[rank - 1][1] - g_iSortedList[rank][1]);
-
-				default: CReplyToCommand(client, "{green}%t {white}%t %t", "Chat Prefix", "TopDefender Position", target, rank + 1, g_iSortedList[rank][1], "TopDefender Position Second", client, g_iSortedList[rank - 1][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
-			}
+			CReplyToCommand(client, "{green}%t {white}%t", "Chat Prefix", "TopDefender Position", target, rank + 1, g_iSortedList[rank][1], sType);
 		}
 	}
 	return Plugin_Handled;
@@ -661,23 +660,22 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 	String_ToUpper(sMenuTitle, sBuffer, sizeof(sBuffer));
 
+	char sType[64];
+	if (GetConVarInt(g_cvDisplayType) != 1 || !g_Plugin_KnifeMode)
+		FormatEx(sType, sizeof(sType), "%t", "DMG");
+	else
+		FormatEx(sType, sizeof(sType), "%t", "KILLS");
+
 	for (int i = 0; i < sizeof(g_iPlayerWinner); i++)
 	{
 		if (g_iSortedList[i][0] > 0)
 		{
+			Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %s", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], sType);
+
 			if (!g_Plugin_KnifeMode)
-			{
-				if (GetConVarInt(g_cvDisplayType) == 0)
-					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %t", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], "DMG");
-				else if (GetConVarInt(g_cvDisplayType) == 1)
-					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %t", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], "KILLS");
 				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_defender" : (i == 1 ? "second_defender" : (i == 2 ? "third_defender" : "super_defender")));
-			}
 			else
-			{
-				Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %t", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], "KILLS");
 				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_knifer" : (i == 1 ? "second_knifer" : (i == 2 ? "third_knifer" : "super_knifer")));
-			}
 
 			g_iPlayerWinner[i] = GetSteamAccountID(g_iSortedList[i][0]);
 		}
@@ -685,7 +683,11 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 1)
 	{
-		CPrintToChatAll("{green}%s", sBuffer);
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			if (IsClientInGame(i))
+				CPrintToChat(i, "{green}%s", sBuffer);
+		}
 	}
 
 	bool bDynamicAvailable = false;

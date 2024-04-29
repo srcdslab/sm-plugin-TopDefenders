@@ -104,23 +104,8 @@
 	}
 	"TopDefender Position"
 	{
-		"#format" "{1:N},{2:d},{3:d}"
-		"en"	"{1} is currently Top Defender #{2} with {3} DMG"
-	}
-	"TopDefender Position First"
-	{
-		"#format" "{1:d}"
-		"en"	"(Previous: -{1} DMG)"
-	}
-	"TopDefender Position Second"
-	{
-		"#format" "{1:d},{2:d}"
-		"en"	"(Next: +{1} DMG | First: +{2} DMG)"
-	}
-	"TopDefender Position Next"
-	{
-		"#format" "{1:d}"
-		"en"	"(Next: +{1} DMG)"
+		"#format" "{1:N},{2:d},{3:d},{4:s}"
+		"en"	"{1} is currently Top Defender #{2} with {3} {4}"
 	}
 	"Immunity Usage"
 	{
