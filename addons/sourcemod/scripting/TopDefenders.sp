@@ -71,13 +71,14 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.9.10"
+	version      = "1.10.0"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	g_bIsCSGO = (GetEngineVersion() == Engine_CSGO);
 	CreateNative("TopDefenders_IsTopDefender", Native_IsTopDefender);
+	CreateNative("TopDefenders_GetClientRank", Native_GetClientRank);
 	RegPluginLibrary("TopDefenders");
 	return APLRes_Success;
 }
@@ -1057,8 +1058,10 @@ public void LagReducer_OnClientGameFrame(int iClient)
 // Purpose: Natives
 //---------------------------------------
 
+// DEPRECATED NATIVE
 public int Native_IsTopDefender(Handle plugin, int numParams)
 {
+	LogError("Native IsTopDefender() is deprecated, use TopDefenderStats() instead.");
 	int client = GetNativeCell(1);
 	if (client && IsClientInGame(client))
 	{
@@ -1069,4 +1072,22 @@ public int Native_IsTopDefender(Handle plugin, int numParams)
 		}
 	}
 	return -1;
+}
+
+public int Native_GetClientRank(Handle plugin, int numParams)
+{
+	int rank = 0;
+	int client = GetNativeCell(1);
+
+	if (!client || !IsClientInGame(client))
+		return -1;
+
+	while (rank < g_iSortedCount)
+	{
+		if (g_iSortedList[rank][0] == client)
+			break;
+		rank++;
+	}
+
+	return rank + 1;
 }
