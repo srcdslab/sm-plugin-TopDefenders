@@ -78,7 +78,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 {
 	g_bIsCSGO = (GetEngineVersion() == Engine_CSGO);
 	CreateNative("TopDefenders_IsTopDefender", Native_IsTopDefender);
-	CreateNative("TopDefenderStats", Native_TopDefenderStats);
+	CreateNative("TopDefenders_GetClientRank", Native_GetClientRank);
 	RegPluginLibrary("TopDefenders");
 	return APLRes_Success;
 }
@@ -1074,7 +1074,7 @@ public int Native_IsTopDefender(Handle plugin, int numParams)
 	return -1;
 }
 
-public int Native_TopDefenderStats(Handle plugin, int numParams)
+public int Native_GetClientRank(Handle plugin, int numParams)
 {
 	int rank = 0;
 	int client = GetNativeCell(1);

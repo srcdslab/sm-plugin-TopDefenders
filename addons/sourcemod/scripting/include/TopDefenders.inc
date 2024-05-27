@@ -20,7 +20,7 @@ forward void TopDefenders_ClientProtected(int client);
  * @param client     Any valid client index.
  * @return           Returns -1 if the client is not a top defender, otherwise it returns its top defender position.
  */
-#pragma deprecated Use TopDefenderStats() instead.
+#pragma deprecated Use TopDefenders_GetClientRank() instead.
 native int TopDefenders_IsTopDefender(int client);
 
 /**
@@ -29,7 +29,7 @@ native int TopDefenders_IsTopDefender(int client);
  * @param client     Any valid client index.
  * @return           Returns -1 if the client is not ingame/ranked, otherwise it returns its top defender position.
  */
-native int TopDefenderStats(int client);
+native int TopDefenders_GetClientRank(int client);
 
 public SharedPlugin __pl_TopDefenders = 
 {
@@ -46,6 +46,6 @@ public SharedPlugin __pl_TopDefenders =
 public void __pl_TopDefenders_SetNTVOptional()
 {
 	MarkNativeAsOptional("TopDefenders_IsTopDefender");
-	MarkNativeAsOptional("TopDefenderStats");
+	MarkNativeAsOptional("TopDefenders_GetClientRank");
 }
 #endif
