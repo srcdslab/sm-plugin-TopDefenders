@@ -71,7 +71,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.10.0"
+	version      = "1.10.1"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -1061,7 +1061,7 @@ public void LagReducer_OnClientGameFrame(int iClient)
 // DEPRECATED NATIVE
 public int Native_IsTopDefender(Handle plugin, int numParams)
 {
-	LogError("Native IsTopDefender() is deprecated, use TopDefenderStats() instead.");
+	LogError("Native IsTopDefender() is deprecated, use TopDefenders_GetClientRank() instead.");
 	int client = GetNativeCell(1);
 	if (client && IsClientInGame(client))
 	{
