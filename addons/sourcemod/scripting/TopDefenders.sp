@@ -71,7 +71,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.10.1"
+	version      = "1.10.2"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -527,6 +527,9 @@ public void OnClientCookiesCached(int client)
 
 public void OnClientDisconnect(int client)
 {
+	if (!AreClientCookiesCached(client) || IsFakeClient(client))
+		return;
+
 	SetClientCookie(client, g_hCookie_HideCrown, g_bHideCrown[client] ? "1" : "");
 	SetClientCookie(client, g_hCookie_HideDialog, g_bHideDialog[client] ? "1" : "");
 	SetClientCookie(client, g_hCookie_Protection, g_bProtection[client] ? "1" : "");
