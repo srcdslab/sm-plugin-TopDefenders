@@ -772,11 +772,6 @@ stock void RemoveHat(int client)
 	}
 }
 
-stock void RemoveHat_CSGO(int client)
-{
-	RemoveHat(client);
-}
-
 stock void CreateHat(int client)
 {
 	if ((g_iCrownEntity = EntIndexToEntRef(CreateEntityByName("prop_dynamic"))) == INVALID_ENT_REFERENCE)
