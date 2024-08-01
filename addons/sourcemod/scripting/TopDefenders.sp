@@ -67,7 +67,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.10.2"
+	version      = "1.11"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
