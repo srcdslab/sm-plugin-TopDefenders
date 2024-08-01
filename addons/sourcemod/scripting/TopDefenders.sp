@@ -136,7 +136,7 @@ public void OnPluginStart()
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if(IsClientConnected(i))
+		if (IsClientConnected(i))
 			OnClientPutInServer(i);
 	}
 
@@ -263,7 +263,7 @@ public Action OnToggleStatus(int client, int args)
 
 public void ResetImmunity()
 {
-	for(int i = 0; i < MAXPLAYERS + 1; i++)
+	for (int i = 0; i < MAXPLAYERS + 1; i++)
 	{
 		g_iPlayerImmune[i] = false;
 	}
@@ -334,13 +334,13 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 			return;
 		}
 	}
-	
+
 	for (int i = 0; i < count; i++)
 	{
 		if (IsValidClient(client))
 			g_iPlayerImmune[targets[i]] = immunity;
 	}
-	
+
 	if (bNotify)
 	{
 		char sEnabled[64], sDisabled[64];
@@ -350,7 +350,7 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 		// ShowActivity doesnt support prefix translated..
 		CShowActivity2(client, "{green}[TopDefenders]{olive} ", "%t", "Immunity Status", immunity ? sEnabled : sDisabled, sTargetName);
 
-		if(count > 1)
+		if (count > 1)
 			LogAction(client, -1, "[TopDefenders] \"%L\" have %s mother zombie immunity on \"%s\"", client, immunity ? "Enabled" : "Disabled", sTargetName);
 		else
 			LogAction(client, targets[0], "[TopDefenders] \"%L\" have %s mother zombie immunity on \"%L\"", client, immunity ? "Enabled" : "Disabled", targets[0]);
@@ -489,7 +489,7 @@ public void OnMapEnd()
 
 public void OnClientPutInServer(int client)
 {
-	if(AreClientCookiesCached(client))
+	if (AreClientCookiesCached(client))
 	{
 		GetCookies(client);
 	}
@@ -780,7 +780,7 @@ stock void RemoveHat_CSS(int client)
 	if (g_iCrownEntity != INVALID_ENT_REFERENCE)
 	{
 		int iCrownEntity = EntRefToEntIndex(g_iCrownEntity);
-		if(IsValidEntity(iCrownEntity))
+		if (IsValidEntity(iCrownEntity))
 			AcceptEntityInput(iCrownEntity, "Kill");
 		g_iCrownEntity = INVALID_ENT_REFERENCE;
 	}
@@ -791,11 +791,11 @@ stock void RemoveHat_CSGO(int client)
 	RemoveHat_CSS(client);
 }
 
-stock void CreateHat_CSS(int client) 
-{ 
+stock void CreateHat_CSS(int client)
+{
 	if ((g_iCrownEntity = EntIndexToEntRef(CreateEntityByName("prop_dynamic"))) == INVALID_ENT_REFERENCE)
 		return;
-	
+
 	int iCrownEntity = EntRefToEntIndex(g_iCrownEntity);
 	SetEntityModel(iCrownEntity, CROWN_MODEL_CSS);
 
@@ -828,14 +828,14 @@ stock void CreateHat_CSS(int client)
 	AcceptEntityInput(iCrownEntity, "SetParent", client);
 }
 
-void CreateHat_CSGO(int client) 
-{ 
-	int m_iEnt = CreateEntityByName("prop_dynamic_override"); 
-	DispatchKeyValue(m_iEnt, "model", CROWN_MODEL_CSGO); 
-	DispatchKeyValue(m_iEnt, "spawnflags", "256"); 
+void CreateHat_CSGO(int client)
+{
+	int m_iEnt = CreateEntityByName("prop_dynamic_override");
+	DispatchKeyValue(m_iEnt, "model", CROWN_MODEL_CSGO);
+	DispatchKeyValue(m_iEnt, "spawnflags", "256");
 	DispatchKeyValue(m_iEnt, "solid", "0");
 	DispatchKeyValue(m_iEnt, "modelscale", "1.3");
-	SetEntPropEnt(m_iEnt, Prop_Send, "m_hOwnerEntity", client); 
+	SetEntPropEnt(m_iEnt, Prop_Send, "m_hOwnerEntity", client);
 
 	float m_flPosition[3];
 	float m_flAngles[3], m_flForward[3], m_flRight[3], m_flUp[3];
@@ -844,17 +844,17 @@ void CreateHat_CSGO(int client)
 	GetClientEyePosition(client, m_flPosition);
 	m_flPosition[2] += 7.0;
 
-	DispatchSpawn(m_iEnt); 
-	AcceptEntityInput(m_iEnt, "TurnOn", m_iEnt, m_iEnt, 0); 
+	DispatchSpawn(m_iEnt);
+	AcceptEntityInput(m_iEnt, "TurnOn", m_iEnt, m_iEnt, 0);
 
-	g_iEntIndex[client] = m_iEnt; 
+	g_iEntIndex[client] = m_iEnt;
 
-	TeleportEntity(m_iEnt, m_flPosition, m_flAngles, NULL_VECTOR); 
+	TeleportEntity(m_iEnt, m_flPosition, m_flAngles, NULL_VECTOR);
 
-	SetVariantString("!activator"); 
-	AcceptEntityInput(m_iEnt, "SetParent", client, m_iEnt, 0); 
+	SetVariantString("!activator");
+	AcceptEntityInput(m_iEnt, "SetParent", client, m_iEnt, 0);
 
-	SetVariantString(CROWN_MODEL_CSGO); 
+	SetVariantString(CROWN_MODEL_CSGO);
 	AcceptEntityInput(m_iEnt, "SetParentAttachmentMaintainOffset", m_iEnt, m_iEnt, 0);
 
 	float fVector[3];
@@ -954,7 +954,7 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 	EmitSoundToClient(client, HOLY_SOUND_COMMON, .volume=1.0);
 }
 
-public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, bool &respawnOverride, bool &respawn) 
+public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, bool &respawnOverride, bool &respawn)
 {
 	char notifHudMsg[255];
 	char notifChatMsg[255];
