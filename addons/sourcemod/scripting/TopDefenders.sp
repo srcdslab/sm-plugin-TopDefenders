@@ -20,7 +20,7 @@
 #define SPECMODE_FREELOOK       6
 
 #define HOLY_SOUND_COMMON       "topdefenders/holy.wav"
-#define CROWN_MODEL_CSS         "models/unloze/crown_v2.mdl"
+#define CROWN_MODEL             "models/unloze/crown_v2.mdl"
 
 bool g_bHideCrown[MAXPLAYERS+1];
 bool g_bHideDialog[MAXPLAYERS+1];
@@ -359,13 +359,13 @@ public void ToggleCrown(int client)
 	g_bHideCrown[client] = !g_bHideCrown[client];
 	if (g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == GetSteamAccountID(client))
 	{
-		RemoveHat_CSS(client);
+		RemoveHat(client);
 	}
 	else if (!g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == GetSteamAccountID(client))
 	{
 		if (GetConVarInt(g_cvHat) == 1)
 		{
-			CreateHat_CSS(client);
+			CreateHat(client);
 		}
 	}
 	SetGlobalTransTarget(client);
@@ -447,7 +447,7 @@ public void OnMapStart()
 {
 	PrecacheSound(HOLY_SOUND_COMMON);
 
-	PrecacheModel(CROWN_MODEL_CSS);
+	PrecacheModel(CROWN_MODEL);
 
 	AddFilesToDownloadsTable("topdefenders_downloadlist.ini");
 
@@ -761,7 +761,7 @@ public void OnClientSpawn(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	}
 }
 
-stock void RemoveHat_CSS(int client)
+stock void RemoveHat(int client)
 {
 	if (g_iCrownEntity != INVALID_ENT_REFERENCE)
 	{
@@ -774,16 +774,16 @@ stock void RemoveHat_CSS(int client)
 
 stock void RemoveHat_CSGO(int client)
 {
-	RemoveHat_CSS(client);
+	RemoveHat(client);
 }
 
-stock void CreateHat_CSS(int client)
+stock void CreateHat(int client)
 {
 	if ((g_iCrownEntity = EntIndexToEntRef(CreateEntityByName("prop_dynamic"))) == INVALID_ENT_REFERENCE)
 		return;
 
 	int iCrownEntity = EntRefToEntIndex(g_iCrownEntity);
-	SetEntityModel(iCrownEntity, CROWN_MODEL_CSS);
+	SetEntityModel(iCrownEntity, CROWN_MODEL);
 
 	DispatchKeyValue(iCrownEntity, "solid",                 "0");
 	DispatchKeyValue(iCrownEntity, "modelscale",            "1.5");
@@ -821,7 +821,7 @@ public Action OnClientSpawnPost(Handle timer, any client)
 
 	if (GetConVarInt(g_cvHat) == 1)
 	{
-		CreateHat_CSS(client);
+		CreateHat(client);
 	}
 	return Plugin_Continue;
 }
@@ -841,7 +841,7 @@ public void OnClientDeath(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 	if (g_iPlayerWinner[0] == GetSteamAccountID(client) && !IsPlayerAlive(client))
 	{
-		RemoveHat_CSS(client);
+		RemoveHat(client);
 	}
 }
 
