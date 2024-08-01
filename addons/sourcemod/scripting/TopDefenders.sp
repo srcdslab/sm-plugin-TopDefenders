@@ -19,9 +19,9 @@
 #define SPECMODE_THIRDPERSON    5
 #define SPECMODE_FREELOOK       6
 
-#define HOLY_SOUND_COMMON		"topdefenders/holy.wav"
-#define CROWN_MODEL_CSGO		"models/topdefenders_perk/crown_v2.mdl"
-#define CROWN_MODEL_CSS			"models/unloze/crown_v2.mdl"
+#define HOLY_SOUND_COMMON       "topdefenders/holy.wav"
+#define CROWN_MODEL_CSGO        "models/topdefenders_perk/crown_v2.mdl"
+#define CROWN_MODEL_CSS         "models/unloze/crown_v2.mdl"
 
 bool g_bHideCrown[MAXPLAYERS+1];
 bool g_bHideDialog[MAXPLAYERS+1];
@@ -125,7 +125,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_toggleimmunity", OnToggleImmunity, "Enable/disable zombie protection");
 	RegConsoleCmd("sm_tdstatus",       OnToggleStatus, "Show Top Defenders status - sm_tdstatus <target|#userid>");
 
-	RegAdminCmd("sm_immunity",	Command_Immunity,	ADMFLAG_CONVARS,	"Give mother zombie immunity to a player");
+	RegAdminCmd("sm_immunity",  Command_Immunity,   ADMFLAG_CONVARS,    "Give mother zombie immunity to a player");
 	RegAdminCmd("sm_debugcrown", Command_DebugCrown, ADMFLAG_ROOT, "Spawn the crown model on yourself");
 
 	HookEvent("round_start",  OnRoundStart);
