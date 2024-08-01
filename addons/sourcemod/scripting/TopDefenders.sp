@@ -20,7 +20,6 @@
 #define SPECMODE_FREELOOK       6
 
 #define HOLY_SOUND_COMMON       "topdefenders/holy.wav"
-#define CROWN_MODEL_CSGO        "models/topdefenders_perk/crown_v2.mdl"
 #define CROWN_MODEL_CSS         "models/unloze/crown_v2.mdl"
 
 bool g_bHideCrown[MAXPLAYERS+1];
@@ -55,13 +54,10 @@ int g_iSortedCount = 0;
 
 bool g_iPlayerImmune[MAXPLAYERS + 1];
 
-int g_iEntIndex[MAXPLAYERS + 1] = { -1, ... };
-
 Handle g_hHudSync = INVALID_HANDLE;
 Handle g_hUpdateTimer = INVALID_HANDLE;
 Handle g_hClientProtectedForward = INVALID_HANDLE;
 
-bool g_bIsCSGO = false;
 bool g_bPlugin_DynamicChannels = false;
 bool g_Plugin_KnifeMode = false;
 bool g_Plugin_AFK = false;
@@ -76,7 +72,6 @@ public Plugin myinfo =
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	g_bIsCSGO = (GetEngineVersion() == Engine_CSGO);
 	CreateNative("TopDefenders_IsTopDefender", Native_IsTopDefender);
 	CreateNative("TopDefenders_GetClientRank", Native_GetClientRank);
 	RegPluginLibrary("TopDefenders");
@@ -364,19 +359,13 @@ public void ToggleCrown(int client)
 	g_bHideCrown[client] = !g_bHideCrown[client];
 	if (g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == GetSteamAccountID(client))
 	{
-		if (!g_bIsCSGO)
-			RemoveHat_CSS(client);
-		else
-			RemoveHat_CSGO(client);
+		RemoveHat_CSS(client);
 	}
 	else if (!g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == GetSteamAccountID(client))
 	{
 		if (GetConVarInt(g_cvHat) == 1)
 		{
-			if (g_bIsCSGO)
-				CreateHat_CSGO(client);
-			else
-				CreateHat_CSS(client);
+			CreateHat_CSS(client);
 		}
 	}
 	SetGlobalTransTarget(client);
@@ -458,10 +447,7 @@ public void OnMapStart()
 {
 	PrecacheSound(HOLY_SOUND_COMMON);
 
-	if (g_bIsCSGO)
-		PrecacheModel(CROWN_MODEL_CSGO);
-	else
-		PrecacheModel(CROWN_MODEL_CSS);
+	PrecacheModel(CROWN_MODEL_CSS);
 
 	AddFilesToDownloadsTable("topdefenders_downloadlist.ini");
 
@@ -828,49 +814,6 @@ stock void CreateHat_CSS(int client)
 	AcceptEntityInput(iCrownEntity, "SetParent", client);
 }
 
-void CreateHat_CSGO(int client)
-{
-	int m_iEnt = CreateEntityByName("prop_dynamic_override");
-	DispatchKeyValue(m_iEnt, "model", CROWN_MODEL_CSGO);
-	DispatchKeyValue(m_iEnt, "spawnflags", "256");
-	DispatchKeyValue(m_iEnt, "solid", "0");
-	DispatchKeyValue(m_iEnt, "modelscale", "1.3");
-	SetEntPropEnt(m_iEnt, Prop_Send, "m_hOwnerEntity", client);
-
-	float m_flPosition[3];
-	float m_flAngles[3], m_flForward[3], m_flRight[3], m_flUp[3];
-	GetClientAbsAngles(client, m_flAngles);
-	GetAngleVectors(m_flAngles, m_flForward, m_flRight, m_flUp);
-	GetClientEyePosition(client, m_flPosition);
-	m_flPosition[2] += 7.0;
-
-	DispatchSpawn(m_iEnt);
-	AcceptEntityInput(m_iEnt, "TurnOn", m_iEnt, m_iEnt, 0);
-
-	g_iEntIndex[client] = m_iEnt;
-
-	TeleportEntity(m_iEnt, m_flPosition, m_flAngles, NULL_VECTOR);
-
-	SetVariantString("!activator");
-	AcceptEntityInput(m_iEnt, "SetParent", client, m_iEnt, 0);
-
-	SetVariantString(CROWN_MODEL_CSGO);
-	AcceptEntityInput(m_iEnt, "SetParentAttachmentMaintainOffset", m_iEnt, m_iEnt, 0);
-
-	float fVector[3];
-	GetClientAbsOrigin(client, fVector);
-
-	fVector[2] += 80.0;
-
-	float fDirection[3];
-	fDirection[0] = 0.0;
-	fDirection[1] = 0.0;
-	fDirection[2] = 1.0;
-
-	TE_SetupSparks(fVector, fDirection, 1000, 200);
-	TE_SendToAll();
-}
-
 public Action OnClientSpawnPost(Handle timer, any client)
 {
 	if (!IsClientInGame(client) || IsFakeClient(client) || !IsPlayerAlive(client))
@@ -878,10 +821,7 @@ public Action OnClientSpawnPost(Handle timer, any client)
 
 	if (GetConVarInt(g_cvHat) == 1)
 	{
-		if (g_bIsCSGO)
-			CreateHat_CSGO(client);
-		else
-			CreateHat_CSS(client);
+		CreateHat_CSS(client);
 	}
 	return Plugin_Continue;
 }
@@ -901,10 +841,7 @@ public void OnClientDeath(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 	if (g_iPlayerWinner[0] == GetSteamAccountID(client) && !IsPlayerAlive(client))
 	{
-		if (!g_bIsCSGO)
-			RemoveHat_CSS(client);
-		else
-			RemoveHat_CSGO(client);
+		RemoveHat_CSS(client);
 	}
 }
 
