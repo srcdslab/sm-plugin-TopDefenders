@@ -19,9 +19,8 @@
 #define SPECMODE_THIRDPERSON    5
 #define SPECMODE_FREELOOK       6
 
-#define HOLY_SOUND_COMMON		"topdefenders/holy.wav"
-#define CROWN_MODEL_CSGO		"models/topdefenders_perk/crown_v2.mdl"
-#define CROWN_MODEL_CSS			"models/unloze/crown_v2.mdl"
+#define HOLY_SOUND_COMMON       "topdefenders/holy.wav"
+#define CROWN_MODEL             "models/unloze/crown_v2.mdl"
 
 bool g_bHideCrown[MAXPLAYERS+1];
 bool g_bHideDialog[MAXPLAYERS+1];
@@ -55,13 +54,10 @@ int g_iSortedCount = 0;
 
 bool g_iPlayerImmune[MAXPLAYERS + 1];
 
-int g_iEntIndex[MAXPLAYERS + 1] = { -1, ... };
-
 Handle g_hHudSync = INVALID_HANDLE;
 Handle g_hUpdateTimer = INVALID_HANDLE;
 Handle g_hClientProtectedForward = INVALID_HANDLE;
 
-bool g_bIsCSGO = false;
 bool g_bPlugin_DynamicChannels = false;
 bool g_Plugin_KnifeMode = false;
 bool g_Plugin_AFK = false;
@@ -71,12 +67,11 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.10.2"
+	version      = "1.11"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	g_bIsCSGO = (GetEngineVersion() == Engine_CSGO);
 	CreateNative("TopDefenders_IsTopDefender", Native_IsTopDefender);
 	CreateNative("TopDefenders_GetClientRank", Native_GetClientRank);
 	RegPluginLibrary("TopDefenders");
@@ -125,7 +120,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_toggleimmunity", OnToggleImmunity, "Enable/disable zombie protection");
 	RegConsoleCmd("sm_tdstatus",       OnToggleStatus, "Show Top Defenders status - sm_tdstatus <target|#userid>");
 
-	RegAdminCmd("sm_immunity",	Command_Immunity,	ADMFLAG_CONVARS,	"Give mother zombie immunity to a player");
+	RegAdminCmd("sm_immunity",  Command_Immunity,   ADMFLAG_CONVARS,    "Give mother zombie immunity to a player");
 	RegAdminCmd("sm_debugcrown", Command_DebugCrown, ADMFLAG_ROOT, "Spawn the crown model on yourself");
 
 	HookEvent("round_start",  OnRoundStart);
@@ -136,7 +131,7 @@ public void OnPluginStart()
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if(IsClientConnected(i))
+		if (IsClientConnected(i))
 			OnClientPutInServer(i);
 	}
 
@@ -263,7 +258,7 @@ public Action OnToggleStatus(int client, int args)
 
 public void ResetImmunity()
 {
-	for(int i = 0; i < MAXPLAYERS + 1; i++)
+	for (int i = 0; i < MAXPLAYERS + 1; i++)
 	{
 		g_iPlayerImmune[i] = false;
 	}
@@ -334,13 +329,13 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 			return;
 		}
 	}
-	
+
 	for (int i = 0; i < count; i++)
 	{
 		if (IsValidClient(client))
 			g_iPlayerImmune[targets[i]] = immunity;
 	}
-	
+
 	if (bNotify)
 	{
 		char sEnabled[64], sDisabled[64];
@@ -350,7 +345,7 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 		// ShowActivity doesnt support prefix translated..
 		CShowActivity2(client, "{green}[TopDefenders]{olive} ", "%t", "Immunity Status", immunity ? sEnabled : sDisabled, sTargetName);
 
-		if(count > 1)
+		if (count > 1)
 			LogAction(client, -1, "[TopDefenders] \"%L\" have %s mother zombie immunity on \"%s\"", client, immunity ? "Enabled" : "Disabled", sTargetName);
 		else
 			LogAction(client, targets[0], "[TopDefenders] \"%L\" have %s mother zombie immunity on \"%L\"", client, immunity ? "Enabled" : "Disabled", targets[0]);
@@ -364,19 +359,13 @@ public void ToggleCrown(int client)
 	g_bHideCrown[client] = !g_bHideCrown[client];
 	if (g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == GetSteamAccountID(client))
 	{
-		if (!g_bIsCSGO)
-			RemoveHat_CSS(client);
-		else
-			RemoveHat_CSGO(client);
+		RemoveHat(client);
 	}
 	else if (!g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == GetSteamAccountID(client))
 	{
 		if (GetConVarInt(g_cvHat) == 1)
 		{
-			if (g_bIsCSGO)
-				CreateHat_CSGO(client);
-			else
-				CreateHat_CSS(client);
+			CreateHat(client);
 		}
 	}
 	SetGlobalTransTarget(client);
@@ -458,10 +447,7 @@ public void OnMapStart()
 {
 	PrecacheSound(HOLY_SOUND_COMMON);
 
-	if (g_bIsCSGO)
-		PrecacheModel(CROWN_MODEL_CSGO);
-	else
-		PrecacheModel(CROWN_MODEL_CSS);
+	PrecacheModel(CROWN_MODEL);
 
 	AddFilesToDownloadsTable("topdefenders_downloadlist.ini");
 
@@ -489,7 +475,7 @@ public void OnMapEnd()
 
 public void OnClientPutInServer(int client)
 {
-	if(AreClientCookiesCached(client))
+	if (AreClientCookiesCached(client))
 	{
 		GetCookies(client);
 	}
@@ -775,29 +761,24 @@ public void OnClientSpawn(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	}
 }
 
-stock void RemoveHat_CSS(int client)
+stock void RemoveHat(int client)
 {
 	if (g_iCrownEntity != INVALID_ENT_REFERENCE)
 	{
 		int iCrownEntity = EntRefToEntIndex(g_iCrownEntity);
-		if(IsValidEntity(iCrownEntity))
+		if (IsValidEntity(iCrownEntity))
 			AcceptEntityInput(iCrownEntity, "Kill");
 		g_iCrownEntity = INVALID_ENT_REFERENCE;
 	}
 }
 
-stock void RemoveHat_CSGO(int client)
+stock void CreateHat(int client)
 {
-	RemoveHat_CSS(client);
-}
-
-stock void CreateHat_CSS(int client) 
-{ 
 	if ((g_iCrownEntity = EntIndexToEntRef(CreateEntityByName("prop_dynamic"))) == INVALID_ENT_REFERENCE)
 		return;
-	
+
 	int iCrownEntity = EntRefToEntIndex(g_iCrownEntity);
-	SetEntityModel(iCrownEntity, CROWN_MODEL_CSS);
+	SetEntityModel(iCrownEntity, CROWN_MODEL);
 
 	DispatchKeyValue(iCrownEntity, "solid",                 "0");
 	DispatchKeyValue(iCrownEntity, "modelscale",            "1.5");
@@ -828,49 +809,6 @@ stock void CreateHat_CSS(int client)
 	AcceptEntityInput(iCrownEntity, "SetParent", client);
 }
 
-void CreateHat_CSGO(int client) 
-{ 
-	int m_iEnt = CreateEntityByName("prop_dynamic_override"); 
-	DispatchKeyValue(m_iEnt, "model", CROWN_MODEL_CSGO); 
-	DispatchKeyValue(m_iEnt, "spawnflags", "256"); 
-	DispatchKeyValue(m_iEnt, "solid", "0");
-	DispatchKeyValue(m_iEnt, "modelscale", "1.3");
-	SetEntPropEnt(m_iEnt, Prop_Send, "m_hOwnerEntity", client); 
-
-	float m_flPosition[3];
-	float m_flAngles[3], m_flForward[3], m_flRight[3], m_flUp[3];
-	GetClientAbsAngles(client, m_flAngles);
-	GetAngleVectors(m_flAngles, m_flForward, m_flRight, m_flUp);
-	GetClientEyePosition(client, m_flPosition);
-	m_flPosition[2] += 7.0;
-
-	DispatchSpawn(m_iEnt); 
-	AcceptEntityInput(m_iEnt, "TurnOn", m_iEnt, m_iEnt, 0); 
-
-	g_iEntIndex[client] = m_iEnt; 
-
-	TeleportEntity(m_iEnt, m_flPosition, m_flAngles, NULL_VECTOR); 
-
-	SetVariantString("!activator"); 
-	AcceptEntityInput(m_iEnt, "SetParent", client, m_iEnt, 0); 
-
-	SetVariantString(CROWN_MODEL_CSGO); 
-	AcceptEntityInput(m_iEnt, "SetParentAttachmentMaintainOffset", m_iEnt, m_iEnt, 0);
-
-	float fVector[3];
-	GetClientAbsOrigin(client, fVector);
-
-	fVector[2] += 80.0;
-
-	float fDirection[3];
-	fDirection[0] = 0.0;
-	fDirection[1] = 0.0;
-	fDirection[2] = 1.0;
-
-	TE_SetupSparks(fVector, fDirection, 1000, 200);
-	TE_SendToAll();
-}
-
 public Action OnClientSpawnPost(Handle timer, any client)
 {
 	if (!IsClientInGame(client) || IsFakeClient(client) || !IsPlayerAlive(client))
@@ -878,10 +816,7 @@ public Action OnClientSpawnPost(Handle timer, any client)
 
 	if (GetConVarInt(g_cvHat) == 1)
 	{
-		if (g_bIsCSGO)
-			CreateHat_CSGO(client);
-		else
-			CreateHat_CSS(client);
+		CreateHat(client);
 	}
 	return Plugin_Continue;
 }
@@ -901,10 +836,7 @@ public void OnClientDeath(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 	if (g_iPlayerWinner[0] == GetSteamAccountID(client) && !IsPlayerAlive(client))
 	{
-		if (!g_bIsCSGO)
-			RemoveHat_CSS(client);
-		else
-			RemoveHat_CSGO(client);
+		RemoveHat(client);
 	}
 }
 
@@ -954,7 +886,7 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 	EmitSoundToClient(client, HOLY_SOUND_COMMON, .volume=1.0);
 }
 
-public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, bool &respawnOverride, bool &respawn) 
+public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, bool &respawnOverride, bool &respawn)
 {
 	char notifHudMsg[255];
 	char notifChatMsg[255];
