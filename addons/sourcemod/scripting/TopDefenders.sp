@@ -52,7 +52,7 @@ int g_iPlayerDamageEvent[MAXPLAYERS + 1];
 int g_iSortedList[MAXPLAYERS + 1][2];
 int g_iSortedCount = 0;
 
-bool g_iPlayerImmune[MAXPLAYERS + 1];
+bool g_bPlayerImmune[MAXPLAYERS + 1];
 
 Handle g_hHudSync = INVALID_HANDLE;
 Handle g_hUpdateTimer = INVALID_HANDLE;
@@ -67,7 +67,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.11"
+	version      = "1.11.1"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -260,7 +260,7 @@ public void ResetImmunity()
 {
 	for (int i = 0; i < MAXPLAYERS + 1; i++)
 	{
-		g_iPlayerImmune[i] = false;
+		g_bPlayerImmune[i] = false;
 	}
 }
 
@@ -333,7 +333,7 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 	for (int i = 0; i < count; i++)
 	{
 		if (IsValidClient(client))
-			g_iPlayerImmune[targets[i]] = immunity;
+			g_bPlayerImmune[targets[i]] = immunity;
 	}
 
 	if (bNotify)
@@ -513,18 +513,19 @@ public void OnClientCookiesCached(int client)
 
 public void OnClientDisconnect(int client)
 {
-	if (!AreClientCookiesCached(client) || IsFakeClient(client))
-		return;
-
-	SetClientCookie(client, g_hCookie_HideCrown, g_bHideCrown[client] ? "1" : "");
-	SetClientCookie(client, g_hCookie_HideDialog, g_bHideDialog[client] ? "1" : "");
-	SetClientCookie(client, g_hCookie_Protection, g_bProtection[client] ? "1" : "");
+	if (AreClientCookiesCached(client) && !IsFakeClient(client))
+	{
+		SetClientCookie(client, g_hCookie_HideCrown, g_bHideCrown[client] ? "1" : "");
+		SetClientCookie(client, g_hCookie_HideDialog, g_bHideDialog[client] ? "1" : "");
+		SetClientCookie(client, g_hCookie_Protection, g_bProtection[client] ? "1" : "");
+	}
 
 	g_iPlayerKills[client] = 0;
 	g_iPlayerDamage[client] = 0;
 	g_bHideCrown[client]  = false;
 	g_bHideDialog[client] = false;
 	g_bProtection[client] = false;
+	g_bPlayerImmune[client] = false;
 }
 
 public int SortDefendersList(int[] elem1, int[] elem2, const int[][] array, Handle hndl)
@@ -908,7 +909,7 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 			FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t \n%t", "protected", "The top", sBuffer);
 			FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t %t", "protected", "The top", sBuffer);
 		}
-		else if (g_iPlayerImmune[client] == true)
+		else if (g_bPlayerImmune[client] == true)
 		{
 			FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t", "Admin Protection");
 			FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t", "Admin Protection");
