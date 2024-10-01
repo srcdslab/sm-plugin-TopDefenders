@@ -34,6 +34,7 @@ ConVar g_hCVar_Protection;
 ConVar g_hCVar_ProtectionMinimal1;
 ConVar g_hCVar_ProtectionMinimal2;
 ConVar g_hCVar_ProtectionMinimal3;
+ConVar g_hCVar_ProtectionMinimal4;
 
 ConVar g_cvHat, g_cvEvent, g_cvIdleTime, g_cvPrint, g_cvPrintPos, g_cvPrintColor, g_cvDisplayType, g_cvScoreboardType, g_cvHUDChannel;
 
@@ -44,7 +45,7 @@ int iDefaultType = -1;
 int g_iCrownEntity = -1;
 int g_iDialogLevel = 100000;
 
-int g_iPlayerWinner[3];
+int g_iPlayerWinner[4];
 int g_iPlayerKills[MAXPLAYERS + 1] = { 0, ... };
 int g_iPlayerDamage[MAXPLAYERS + 1];
 int g_iPlayerDamageEvent[MAXPLAYERS + 1];
@@ -67,7 +68,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.11.1"
+	version      = "1.11.2"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -87,6 +88,7 @@ public void OnPluginStart()
 	g_hCVar_ProtectionMinimal1 = CreateConVar("sm_topdefenders_minimal_1", "15", "Minimum active players to enable mother zombie immunity for Top 1", FCVAR_NONE, true, 1.0, true, 64.0);
 	g_hCVar_ProtectionMinimal2 = CreateConVar("sm_topdefenders_minimal_2", "30", "Minimum active players to enable mother zombie immunity for Top 2", FCVAR_NONE, true, 1.0, true, 64.0);
 	g_hCVar_ProtectionMinimal3 = CreateConVar("sm_topdefenders_minimal_3", "45", "Minimum active players to enable mother zombie immunity for Top 3", FCVAR_NONE, true, 1.0, true, 64.0);
+	g_hCVar_ProtectionMinimal4 = CreateConVar("sm_topdefenders_minimal_4", "60", "Minimum active players to enable mother zombie immunity for Top 4", FCVAR_NONE, true, 1.0, true, 65.0);
 
 	g_cvScoreboardType = CreateConVar("sm_topdefenders_scoreboard_type", "1", "0 = Disabled, 1 = Replace deaths by your topdefender position", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvDisplayType = CreateConVar("sm_topdefenders_display_type", "0", "0 = Ordered by damages, 1 = Ordered by kills", FCVAR_NONE, true, 0.0, true, 1.0);
@@ -356,12 +358,13 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 
 public void ToggleCrown(int client)
 {
+	int iSteamAccountID = GetSteamAccountID(client);
 	g_bHideCrown[client] = !g_bHideCrown[client];
-	if (g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == GetSteamAccountID(client))
+	if (g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == iSteamAccountID)
 	{
 		RemoveHat(client);
 	}
-	else if (!g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == GetSteamAccountID(client))
+	else if (!g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == iSteamAccountID)
 	{
 		if (GetConVarInt(g_cvHat) == 1)
 		{
@@ -628,7 +631,7 @@ public void OnRoundStart(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 
 public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 {
-	g_iPlayerWinner = {-1, -1, -1};
+	g_iPlayerWinner = {-1, -1, -1, -1};
 
 	if (g_Plugin_KnifeMode)
 		g_cvDisplayType.IntValue = 1;
@@ -664,9 +667,9 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 			Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %s", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], sType);
 
 			if (!g_Plugin_KnifeMode)
-				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_defender" : (i == 1 ? "second_defender" : (i == 2 ? "third_defender" : "super_defender")));
+				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_defender" : (i == 1 ? "second_defender" : (i == 2 ? "third_defender" : (i == 3 ? "fourth_defender" : "super_defender"))));
 			else
-				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_knifer" : (i == 1 ? "second_knifer" : (i == 2 ? "third_knifer" : "super_knifer")));
+				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_knifer" : (i == 1 ? "second_knifer" : (i == 2 ? "third_knifer" : (i == 3 ? "fourth_knifer" : "super_knifer"))));
 
 			g_iPlayerWinner[i] = GetSteamAccountID(g_iSortedList[i][0]);
 		}
@@ -896,11 +899,14 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 	if (motherInfect)
 	{
 		SetGlobalTransTarget(client);
+		int iSteamAccountID = GetSteamAccountID(client);
+
 		if (g_hCVar_Protection.BoolValue
 			&& !g_bProtection[client]
-			&& ((g_iPlayerWinner[0] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal1.IntValue) ||
-			(g_iPlayerWinner[1] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal2.IntValue) ||
-			(g_iPlayerWinner[2] == GetSteamAccountID(client) && activePlayers >= g_hCVar_ProtectionMinimal3.IntValue)))
+			&& ((g_iPlayerWinner[0] == iSteamAccountID && activePlayers >= g_hCVar_ProtectionMinimal1.IntValue) ||
+			(g_iPlayerWinner[1] == iSteamAccountID && activePlayers >= g_hCVar_ProtectionMinimal2.IntValue) ||
+			(g_iPlayerWinner[2] == iSteamAccountID && activePlayers >= g_hCVar_ProtectionMinimal3.IntValue) ||
+			(g_iPlayerWinner[3] == iSteamAccountID && activePlayers >= g_hCVar_ProtectionMinimal4.IntValue)))
 		{
 			char sBuffer[64], sKnifer[64], sDefender[64];
 			FormatEx(sKnifer, sizeof(sKnifer), "%t", "Knifer");
@@ -1001,7 +1007,7 @@ public int Native_IsTopDefender(Handle plugin, int numParams)
 	int client = GetNativeCell(1);
 	if (client && IsClientInGame(client))
 	{
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < sizeof(g_iPlayerWinner); i++)
 		{
 			if (g_iPlayerWinner[i] == GetSteamAccountID(client))
 				return i;
