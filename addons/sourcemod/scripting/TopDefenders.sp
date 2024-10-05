@@ -68,7 +68,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.11.2"
+	version      = "1.11.3"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -213,7 +213,6 @@ public Action OnToggleImmunity(int client, int args)
 
 public Action OnToggleStatus(int client, int args)
 {
-	int rank = 0;
 	int target = -1;
 
 	if (args != 0)
@@ -235,14 +234,10 @@ public Action OnToggleStatus(int client, int args)
 
 	if (target > 0 && target <= MaxClients)
 	{
-		while (rank < g_iSortedCount)
-		{
-			if (g_iSortedList[rank][0] == target)
-				break;
-			rank++;
-		}
+		int iDisplayRank = GetClientRank(target);
+		int rank = iDisplayRank - 1;
 
-		if (rank > g_iSortedCount)
+		if (rank < 0 || rank >= g_iSortedCount)
 			CReplyToCommand(client, "{green}%t {white}%t", "Chat Prefix", "Not ranked");
 		else
 		{
@@ -252,7 +247,7 @@ public Action OnToggleStatus(int client, int args)
 			else
 				FormatEx(sType, sizeof(sType), "%t", "DMG");
 
-			CReplyToCommand(client, "{green}%t {white}%t", "Chat Prefix", "TopDefender Position", target, rank + 1, g_iSortedList[rank][1], sType);
+			CReplyToCommand(client, "{green}%t {white}%t", "Chat Prefix", "TopDefender Position", target, iDisplayRank, g_iSortedList[rank][1], sType);
 		}
 	}
 	return Plugin_Handled;
@@ -577,30 +572,25 @@ public Action UpdateDefendersList(Handle timer)
 	return Plugin_Continue;
 }
 
-public Action UpdateClientUI(int iClient)
+public Action UpdateClientUI(int client)
 {
-	if (!IsClientInGame(iClient))
+	if (!IsClientInGame(client))
 		return Plugin_Continue;
 
-	int rank = 0;
-	while (rank < g_iSortedCount)
-	{
-		if (g_iSortedList[rank][0] == iClient)
-			break;
-		rank++;
-	}
+	int iDisplayRank = GetClientRank(client);
+	int rank = iDisplayRank - 1;
 
 	// Scoreboard
 	if (GetConVarInt(g_cvScoreboardType) == 1)
 	{
 		if (rank >= g_iSortedCount)
 		{
-			SetEntProp(iClient, Prop_Data, "m_iDeaths", 0);
+			SetEntProp(client, Prop_Data, "m_iDeaths", 0);
 			return Plugin_Continue;
 		}
 		else
 		{
-			SetEntProp(iClient, Prop_Data, "m_iDeaths", rank + 1);
+			SetEntProp(client, Prop_Data, "m_iDeaths", rank + 1);
 		}
 	}
 
@@ -610,9 +600,9 @@ public Action UpdateClientUI(int iClient)
 	// Dialog
 	switch(rank)
 	{
-		case(0): SendDialog(iClient, "#%d (D: %d | P: -%d)",          g_iDialogLevel, 1, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
-		case(1): SendDialog(iClient, "#%d (D: %d | N: +%d)",          g_iDialogLevel, 1, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1]);
-		default: SendDialog(iClient, "#%d (D: %d | N: +%d | F: +%d)", g_iDialogLevel, 1, rank + 1, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
+		case(1): SendDialog(client, "#%d (D: %d | P: -%d)",          g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
+		case(2): SendDialog(client, "#%d (D: %d | N: +%d)",          g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank][1]);
+		default: SendDialog(client, "#%d (D: %d | N: +%d | F: +%d)", g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
 	}
 	return Plugin_Continue;
 }
@@ -680,7 +670,17 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 		for (int i = 1; i <= MaxClients; i++)
 		{
 			if (IsClientInGame(i))
+			{
+				if (!IsFakeClient(i))
+				{
+					int iDisplayRank = GetClientRank(i);
+					int rank = iDisplayRank - 1;
+
+					if (rank < g_iSortedCount)
+						Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %s", sBuffer, iDisplayRank, g_iSortedList[rank][0], g_iSortedList[rank][1], sType);
+				}
 				CPrintToChat(i, "{green}%s", sBuffer);
+			}
 		}
 	}
 
@@ -965,6 +965,18 @@ void SendDialog(int client, const char[] display, const int level, const int tim
 	delete kv;
 }
 
+stock int GetClientRank(int client)
+{
+	int rank = 0;
+	while (rank < g_iSortedCount)
+	{
+		if (g_iSortedList[rank][0] == client)
+			break;
+		rank++;
+	}
+	return rank + 1;
+}
+
 public void GetConVars()
 {
 	char StringPos[2][8];
@@ -991,9 +1003,9 @@ int GetClientSpectatorTarget(int client)
 	return GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
 }
 
-public void LagReducer_OnClientGameFrame(int iClient)
+public void LagReducer_OnClientGameFrame(int client)
 {
-	UpdateClientUI(iClient);
+	UpdateClientUI(client);
 }
 
 //---------------------------------------
@@ -1018,18 +1030,10 @@ public int Native_IsTopDefender(Handle plugin, int numParams)
 
 public int Native_GetClientRank(Handle plugin, int numParams)
 {
-	int rank = 0;
 	int client = GetNativeCell(1);
 
 	if (!client || !IsClientInGame(client))
 		return -1;
 
-	while (rank < g_iSortedCount)
-	{
-		if (g_iSortedList[rank][0] == client)
-			break;
-		rank++;
-	}
-
-	return rank + 1;
+	return GetClientRank(client);
 }
