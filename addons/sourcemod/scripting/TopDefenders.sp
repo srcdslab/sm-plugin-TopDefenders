@@ -600,8 +600,8 @@ public Action UpdateClientUI(int client)
 	// Dialog
 	switch(rank)
 	{
-		case(1): SendDialog(client, "#%d (D: %d | P: -%d)",          g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
-		case(2): SendDialog(client, "#%d (D: %d | N: +%d)",          g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank][1]);
+		case(0): SendDialog(client, "#%d (D: %d | P: -%d)",          g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
+		case(1): SendDialog(client, "#%d (D: %d | N: +%d)",          g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank][1]);
 		default: SendDialog(client, "#%d (D: %d | N: +%d | F: +%d)", g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
 	}
 	return Plugin_Continue;
@@ -621,6 +621,11 @@ public void OnRoundStart(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 
 public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 {
+	// ZombieReloaded always fire a team win event before the draw event
+	// So we can ignore the draw event - Prevent duplicate execution
+	if (!IsValidTeamVictory(hEvent))
+		return;
+
 	g_iPlayerWinner = {-1, -1, -1, -1};
 
 	if (g_Plugin_KnifeMode)
@@ -650,69 +655,90 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	else
 		FormatEx(sType, sizeof(sType), "%t", "KILLS");
 
-	for (int i = 0; i < sizeof(g_iPlayerWinner); i++)
+	// Always 3 winners by default
+	int numWinners = 3;
+	int activePlayers = GetTeamClientCount(CS_TEAM_CT) + GetTeamClientCount(CS_TEAM_T);
+
+	if (activePlayers >= g_hCVar_ProtectionMinimal4.IntValue)
+		numWinners = 4;
+
+	// Prepare the message buffer for all players
+	char sPersonalBuffer[512];
+	for (int i = 0; i < sizeof(numWinners); i++)
 	{
 		if (g_iSortedList[i][0] > 0)
 		{
 			Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %s", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], sType);
 
 			if (!g_Plugin_KnifeMode)
-				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_defender" : (i == 1 ? "second_defender" : (i == 2 ? "third_defender" : (i == 3 ? "fourth_defender" : "super_defender"))));
+			{
+				switch (i)
+				{
+					case 0: LogPlayerEvent(g_iSortedList[i][0], "triggered", "top_defender");
+					case 1: LogPlayerEvent(g_iSortedList[i][0], "triggered", "second_defender");
+					case 2: LogPlayerEvent(g_iSortedList[i][0], "triggered", "third_defender");
+					case 3: LogPlayerEvent(g_iSortedList[i][0], "triggered", "fourth_defender");
+					default: LogPlayerEvent(g_iSortedList[i][0], "triggered", "super_defender");
+				}
+			}
 			else
-				LogPlayerEvent(g_iSortedList[i][0], "triggered", i == 0 ? "top_knifer" : (i == 1 ? "second_knifer" : (i == 2 ? "third_knifer" : (i == 3 ? "fourth_knifer" : "super_knifer"))));
+			{
+				switch (i)
+				{
+					case 0: LogPlayerEvent(g_iSortedList[i][0], "triggered", "top_knifer");
+					case 1: LogPlayerEvent(g_iSortedList[i][0], "triggered", "second_knifer");
+					case 2: LogPlayerEvent(g_iSortedList[i][0], "triggered", "third_knifer");
+					case 3: LogPlayerEvent(g_iSortedList[i][0], "triggered", "fourth_knifer");
+					default: LogPlayerEvent(g_iSortedList[i][0], "triggered", "super_knifer");
+				}
+			}
 
 			g_iPlayerWinner[i] = GetSteamAccountID(g_iSortedList[i][0]);
 		}
 	}
 
-	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 1)
-	{
-		for (int i = 1; i <= MaxClients; i++)
-		{
-			if (IsClientInGame(i))
-			{
-				if (!IsFakeClient(i))
-				{
-					int iDisplayRank = GetClientRank(i);
-					int rank = iDisplayRank - 1;
+	int iHUDChannel = g_cvHUDChannel.IntValue;
+	if (iHUDChannel < 0 || iHUDChannel > 6)
+		iHUDChannel = 1;
 
-					if (rank < g_iSortedCount)
-						Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %s", sBuffer, iDisplayRank, g_iSortedList[rank][0], g_iSortedList[rank][1], sType);
-				}
-				CPrintToChat(i, "{green}%s", sBuffer);
-			}
-		}
-	}
-
-	bool bDynamicAvailable = false;
-	int iHUDChannel = -1;
-
-	int iChannel = g_cvHUDChannel.IntValue;
-	if (iChannel < 0 || iChannel > 6)
-		iChannel = 1;
-
-	bDynamicAvailable = g_bPlugin_DynamicChannels && CanTestFeatures() && GetFeatureStatus(FeatureType_Native, "GetDynamicChannel") == FeatureStatus_Available;
+	bool bDynamicAvailable = g_bPlugin_DynamicChannels && CanTestFeatures() && GetFeatureStatus(FeatureType_Native, "GetDynamicChannel") == FeatureStatus_Available;
 
 #if defined _DynamicChannels_included_
 	if (bDynamicAvailable)
-		iHUDChannel = GetDynamicChannel(iChannel);
+		iHUDChannel = GetDynamicChannel(iHUDChannel);
 #endif
 
-	if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 2)
+	// Send messages to clients based on g_cvPrint value
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		SetHudTextParams(g_fPrintPos[0], g_fPrintPos[1], 5.0, g_iPrintColor[0], g_iPrintColor[1], g_iPrintColor[2], 255, 0, 0.0, 0.1, 0.1);
-
-		for (int client = 1; client <= MaxClients; client++)
+		if (IsClientInGame(i))
 		{
-			if (!IsValidClient(client))
-				continue;
+			bool bPersonal = false;
+			int iDisplayRank = GetClientRank(i);
+			int rank = iDisplayRank - 1;
 
-			if (bDynamicAvailable)
-				ShowHudText(client, iHUDChannel, "%s", sBuffer);
-			else
+			// Clear sPersonalBuffer for each client
+			sPersonalBuffer[0] = '\0';
+			if (iDisplayRank >= 1 && iDisplayRank <= g_iSortedCount && g_iPlayerWinner[0] != GetSteamAccountID(i))
 			{
-				ClearSyncHud(client, g_hHudSync);
-				ShowSyncHudText(client, g_hHudSync, "%s", sBuffer);
+				bPersonal = true;
+				Format(sPersonalBuffer, sizeof(sPersonalBuffer), "\n%d. %N - %d %s", iDisplayRank, g_iSortedList[rank][0], g_iSortedList[rank][1], sType);
+			}
+
+			if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 1)
+				CPrintToChat(i, "{green}%s%s", sBuffer, bPersonal ? sPersonalBuffer : "");
+
+			if (g_cvPrint.IntValue <= 0 || g_cvPrint.IntValue == 2)
+			{
+				SetHudTextParams(g_fPrintPos[0], g_fPrintPos[1], 5.0, g_iPrintColor[0], g_iPrintColor[1], g_iPrintColor[2], 255, 0, 0.0, 0.1, 0.1);
+				
+				if (bDynamicAvailable)
+					ShowSyncHudText(i, g_hHudSync, "%s%s", sBuffer, bPersonal ? sPersonalBuffer : "");
+				else
+				{
+					ClearSyncHud(i, g_hHudSync);
+					ShowSyncHudText(i, g_hHudSync, "%s%s", sBuffer, bPersonal ? sPersonalBuffer : "");
+				}
 			}
 		}
 	}
