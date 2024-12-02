@@ -29,7 +29,6 @@ jobs:
           cp -R .sourceknight/package/* /tmp/package
           cp -R addons/sourcemod/translations /tmp/package/common/addons/sourcemod/
           cp -R common/* /tmp/package/common/
-          cp -R csgo /tmp/package/
           cp -R cstrike /tmp/package/
 
       - name: Upload build archive for test runners
