@@ -68,7 +68,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.11.3"
+	version      = "1.11.4"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -664,7 +664,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 	// Prepare the message buffer for all players
 	char sPersonalBuffer[512];
-	for (int i = 0; i < sizeof(numWinners); i++)
+	for (int i = 0; i < numWinners; i++)
 	{
 		if (g_iSortedList[i][0] > 0)
 		{
