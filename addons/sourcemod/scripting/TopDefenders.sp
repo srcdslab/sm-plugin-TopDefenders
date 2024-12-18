@@ -719,7 +719,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 			// Clear sPersonalBuffer for each client
 			sPersonalBuffer[0] = '\0';
-			if (iDisplayRank >= 1 && iDisplayRank <= g_iSortedCount && g_iPlayerWinner[0] != GetSteamAccountID(i))
+			if (iDisplayRank > numWinners && iDisplayRank <= g_iSortedCount)
 			{
 				bPersonal = true;
 				Format(sPersonalBuffer, sizeof(sPersonalBuffer), "\n%d. %N - %d %s", iDisplayRank, g_iSortedList[rank][0], g_iSortedList[rank][1], sType);
