@@ -68,7 +68,7 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.11.4"
+	version      = "1.11.5"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -590,7 +590,7 @@ public Action UpdateClientUI(int client)
 		}
 		else
 		{
-			SetEntProp(client, Prop_Data, "m_iDeaths", rank + 1);
+			SetEntProp(client, Prop_Data, "m_iDeaths", iDisplayRank);
 		}
 	}
 
@@ -600,10 +600,11 @@ public Action UpdateClientUI(int client)
 	// Dialog
 	switch(rank)
 	{
-		case(0): SendDialog(client, "#%d (D: %d | P: -%d)",          g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
-		case(1): SendDialog(client, "#%d (D: %d | N: +%d)",          g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank][1]);
-		default: SendDialog(client, "#%d (D: %d | N: +%d | F: +%d)", g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
+		case(0): SendDialog(client, "#%d (D: %d | P: -%d)", g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank][1] - g_iSortedList[rank + 1][1]);
+		case(1): SendDialog(client, "#%d (D: %d | N: +%d)", g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1]);
+		default: SendDialog(client, "#%d (D: %d | N: +%d | F: +%d)", g_iDialogLevel, 1, iDisplayRank, g_iSortedList[rank][1], g_iSortedList[rank - 1][1] - g_iSortedList[rank][1], g_iSortedList[0][1] - g_iSortedList[rank][1]);
 	}
+
 	return Plugin_Continue;
 }
 
@@ -733,7 +734,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 				SetHudTextParams(g_fPrintPos[0], g_fPrintPos[1], 5.0, g_iPrintColor[0], g_iPrintColor[1], g_iPrintColor[2], 255, 0, 0.0, 0.1, 0.1);
 				
 				if (bDynamicAvailable)
-					ShowSyncHudText(i, g_hHudSync, "%s%s", sBuffer, bPersonal ? sPersonalBuffer : "");
+					ShowHudText(i, iHUDChannel, "%s%s", sBuffer, bPersonal ? sPersonalBuffer : "");
 				else
 				{
 					ClearSyncHud(i, g_hHudSync);
