@@ -8,6 +8,27 @@
 #endif
 #define _TopDefenders_included
 
+#define TopDefenders_V_MAJOR   1
+#define TopDefenders_V_MINOR   12
+#define TopDefenders_V_PATCH   0
+
+#define TopDefenders_VERSION   "1.12.0"
+
+/**
+ * Called when the plugin becomes available.
+ * 
+ * @noreturn
+ */
+forward void TopDefenders_OnPluginOK();
+
+/**
+ * Called when the plugin becomes unavailable.
+ * This can happen when the plugin is paused or unloaded.
+ * 
+ * @noreturn
+ */
+forward void TopDefenders_OnPluginNotOK();
+
 /**
  * Called after giving player immunity
  */

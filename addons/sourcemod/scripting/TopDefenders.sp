@@ -4,6 +4,7 @@
 #include <sourcemod>
 #include <sdktools>
 #include <LagReducer>
+#include <TopDefenders>
 #include <smlib>
 
 #undef REQUIRE_PLUGIN
@@ -55,6 +56,9 @@ int g_iSortedCount = 0;
 
 bool g_bPlayerImmune[MAXPLAYERS + 1];
 
+GlobalForward g_hForward_StatusOK;
+GlobalForward g_hForward_StatusNotOK;
+
 Handle g_hHudSync = INVALID_HANDLE;
 Handle g_hUpdateTimer = INVALID_HANDLE;
 Handle g_hClientProtectedForward = INVALID_HANDLE;
@@ -68,13 +72,18 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.11.5"
+	version      = TopDefenders_VERSION,
+	url          = "https://github.com/srcdslab/sm-plugin-TopDefenders"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	CreateNative("TopDefenders_IsTopDefender", Native_IsTopDefender);
 	CreateNative("TopDefenders_GetClientRank", Native_GetClientRank);
+
+	g_hForward_StatusOK = CreateGlobalForward("TopDefenders_OnPluginOK", ET_Ignore);
+	g_hForward_StatusNotOK = CreateGlobalForward("TopDefenders_OnPluginNotOK", ET_Ignore);
+
 	RegPluginLibrary("TopDefenders");
 	return APLRes_Success;
 }
@@ -142,6 +151,8 @@ public void OnPluginStart()
 
 public void OnPluginEnd()
 {
+	SendForward_NotAvailable();
+
 	if (g_hHudSync != INVALID_HANDLE)
 	{
 		CloseHandle(g_hHudSync);
@@ -161,8 +172,18 @@ public void OnPluginEnd()
 	}
 }
 
+public void OnPluginPauseChange(bool pause)
+{
+	if (pause)
+		SendForward_NotAvailable();
+	else
+		SendForward_Available();
+}
+
 public void OnAllPluginsLoaded()
 {
+	SendForward_Available();
+
 	g_bPlugin_DynamicChannels = LibraryExists("DynamicChannels");
 	g_Plugin_KnifeMode = LibraryExists("KnifeMode");
 	g_Plugin_AFK = LibraryExists("AFKManager");
@@ -1063,4 +1084,16 @@ public int Native_GetClientRank(Handle plugin, int numParams)
 		return -1;
 
 	return GetClientRank(client);
+}
+
+stock void SendForward_Available()
+{
+	Call_StartForward(g_hForward_StatusOK);
+	Call_Finish();
+}
+
+stock void SendForward_NotAvailable()
+{
+	Call_StartForward(g_hForward_StatusNotOK);
+	Call_Finish();
 }
