@@ -4,6 +4,7 @@
 #include <sourcemod>
 #include <sdktools>
 #include <LagReducer>
+#include <TopDefenders>
 #include <smlib>
 
 #undef REQUIRE_PLUGIN
@@ -42,8 +43,8 @@ int g_iPrintColor[3];
 float g_fPrintPos[2];
 
 int iDefaultType = -1;
-int g_iCrownEntity = -1;
 int g_iDialogLevel = 100000;
+int g_iCrownEntities[MAXPLAYERS+1] = { INVALID_ENT_REFERENCE, ... };
 
 int g_iPlayerWinner[4];
 int g_iPlayerKills[MAXPLAYERS + 1] = { 0, ... };
@@ -68,13 +69,15 @@ public Plugin myinfo =
 	name         = "Top Defenders",
 	author       = "Neon & zaCade & maxime1907 & Cloud Strife & .Rushaway",
 	description  = "Show Top Defenders after each round",
-	version      = "1.11.5"
+	version      = TopDefenders_VERSION,
+	url          = "https://github.com/srcdslab/sm-plugin-TopDefenders"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	CreateNative("TopDefenders_IsTopDefender", Native_IsTopDefender);
 	CreateNative("TopDefenders_GetClientRank", Native_GetClientRank);
+
 	RegPluginLibrary("TopDefenders");
 	return APLRes_Success;
 }
@@ -142,6 +145,8 @@ public void OnPluginStart()
 
 public void OnPluginEnd()
 {
+	RemoveAllHats();
+
 	if (g_hHudSync != INVALID_HANDLE)
 	{
 		CloseHandle(g_hHudSync);
@@ -172,9 +177,9 @@ public void OnLibraryAdded(const char[] name)
 {
 	if (strcmp(name, "DynamicChannels", false) == 0)
 		g_bPlugin_DynamicChannels = true;
-	if (strcmp(name, "KnifeMode", false) == 0)
+	else if (strcmp(name, "KnifeMode", false) == 0)
 		g_Plugin_KnifeMode = true;
-	if (strcmp(name, "AFKManager", false) == 0)
+	else if (strcmp(name, "AFKManager", false) == 0)
 		g_Plugin_AFK = true;
 }
 
@@ -182,9 +187,9 @@ public void OnLibraryRemoved(const char[] name)
 {
 	if (strcmp(name, "DynamicChannels", false) == 0)
 		g_bPlugin_DynamicChannels = false;
-	if (strcmp(name, "KnifeMode", false) == 0)
+	else if (strcmp(name, "KnifeMode", false) == 0)
 		g_Plugin_KnifeMode = false;
-	if (strcmp(name, "AFKManager", false) == 0)
+	else if (strcmp(name, "AFKManager", false) == 0)
 		g_Plugin_AFK = false;
 }
 
@@ -462,6 +467,8 @@ public void OnConfigsExecuted()
 
 public void OnMapEnd()
 {
+	RemoveAllHats();
+
 	if (g_hUpdateTimer != INVALID_HANDLE)
 	{
 		KillTimer(g_hUpdateTimer);
@@ -473,6 +480,8 @@ public void OnMapEnd()
 
 public void OnClientPutInServer(int client)
 {
+	g_iCrownEntities[client] = INVALID_ENT_REFERENCE;
+
 	if (AreClientCookiesCached(client))
 	{
 		GetCookies(client);
@@ -511,6 +520,8 @@ public void OnClientCookiesCached(int client)
 
 public void OnClientDisconnect(int client)
 {
+	RemoveHat(client);
+
 	if (AreClientCookiesCached(client) && !IsFakeClient(client))
 	{
 		SetClientCookie(client, g_hCookie_HideCrown, g_bHideCrown[client] ? "1" : "");
@@ -610,6 +621,7 @@ public Action UpdateClientUI(int client)
 
 public void OnRoundStart(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 {
+	RemoveAllHats();
 	g_iDialogLevel = 100000;
 
 	for (int client = 1; client <= MaxClients; client++)
@@ -794,21 +806,48 @@ public void OnClientSpawn(Event hEvent, const char[] sEvent, bool bDontBroadcast
 
 stock void RemoveHat(int client)
 {
-	if (g_iCrownEntity != INVALID_ENT_REFERENCE)
+	if (g_iCrownEntities[client] != INVALID_ENT_REFERENCE)
 	{
-		int iCrownEntity = EntRefToEntIndex(g_iCrownEntity);
-		if (IsValidEntity(iCrownEntity))
-			AcceptEntityInput(iCrownEntity, "Kill");
-		g_iCrownEntity = INVALID_ENT_REFERENCE;
+		int iCrownEntity = EntRefToEntIndex(g_iCrownEntities[client]);
+		if (!IsValidEntity(iCrownEntity))
+			return;
+		
+		// We always verify the entity we are going to remove
+		char sModel[128];
+		GetEntPropString(iCrownEntity, Prop_Data, "m_ModelName", sModel, sizeof(sModel));
+
+		// Something went wrong, we should not remove this entity
+		if (strcmp(sModel, CROWN_MODEL, false) != 0)
+		{
+			char sClassName[64];
+			GetEntityClassname(iCrownEntity, sClassName, sizeof(sClassName));
+			LogError("Blocked attempt to remove invalid entity %d (%s) for %L", iCrownEntity, sClassName, client);
+			return;
+		}
+
+		// All checks passed, we can remove the entity
+		AcceptEntityInput(iCrownEntity, "Kill");
+
+		g_iCrownEntities[client] = INVALID_ENT_REFERENCE;
 	}
+}
+
+stock void RemoveAllHats()
+{
+    for (int client = 1; client <= MaxClients; client++)
+    {
+        RemoveHat(client);
+    }
 }
 
 stock void CreateHat(int client)
 {
-	if ((g_iCrownEntity = EntIndexToEntRef(CreateEntityByName("prop_dynamic"))) == INVALID_ENT_REFERENCE)
-		return;
+	RemoveHat(client);
 
-	int iCrownEntity = EntRefToEntIndex(g_iCrownEntity);
+	if ((g_iCrownEntities[client] = EntIndexToEntRef(CreateEntityByName("prop_dynamic"))) == INVALID_ENT_REFERENCE)
+		return;
+	
+	int iCrownEntity = EntRefToEntIndex(g_iCrownEntities[client]);
 	SetEntityModel(iCrownEntity, CROWN_MODEL);
 
 	DispatchKeyValue(iCrownEntity, "solid",                 "0");
