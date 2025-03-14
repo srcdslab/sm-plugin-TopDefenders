@@ -8,6 +8,12 @@
 #endif
 #define _TopDefenders_included
 
+#define TopDefenders_V_MAJOR   "1"
+#define TopDefenders_V_MINOR   "11"
+#define TopDefenders_V_PATCH   "6"
+
+#define TopDefenders_VERSION   TopDefenders_V_MAJOR..."."...TopDefenders_V_MINOR..."."...TopDefenders_V_PATCH
+
 /**
  * Called after giving player immunity
  */
