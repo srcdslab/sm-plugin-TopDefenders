@@ -24,13 +24,6 @@ project:
       - source: /src/addons/sourcemod/scripting/include
         dest: /addons/sourcemod/scripting/include
 
-    - name: lagreducer
-      type: git
-      repo: https://github.com/srcdslab/sm-plugin-LagReducer
-      unpack:
-      - source: /addons/sourcemod/scripting/include
-        dest: /addons/sourcemod/scripting/include
-
     - name: loghelper
       type: git
       repo: https://github.com/srcdslab/sm-plugin-LogHelper

@@ -3,7 +3,6 @@
 #include <multicolors>
 #include <sourcemod>
 #include <sdktools>
-#include <LagReducer>
 #include <TopDefenders>
 #include <smlib>
 
@@ -38,6 +37,7 @@ ConVar g_hCVar_ProtectionMinimal3;
 ConVar g_hCVar_ProtectionMinimal4;
 
 ConVar g_cvHat, g_cvEvent, g_cvIdleTime, g_cvPrint, g_cvPrintPos, g_cvPrintColor, g_cvDisplayType, g_cvScoreboardType, g_cvHUDChannel;
+ConVar g_cvFramesToSkip;
 
 int g_iPrintColor[3];
 float g_fPrintPos[2];
@@ -53,6 +53,7 @@ int g_iPlayerDamageEvent[MAXPLAYERS + 1];
 
 int g_iSortedList[MAXPLAYERS + 1][2];
 int g_iSortedCount = 0;
+int g_iFramesToSkip;
 
 bool g_bPlayerImmune[MAXPLAYERS + 1];
 
@@ -102,10 +103,12 @@ public void OnPluginStart()
 	g_cvPrintPos = CreateConVar("sm_topdefenders_print_position", "0.02 0.25", "The X and Y position for the hud.");
 	g_cvPrintColor = CreateConVar("sm_topdefenders_print_color", "255 255 255", "RGB color value for the hud.");
 	g_cvHUDChannel = CreateConVar("sm_topdefenders_hud_channel", "1", "The channel for the hud if using DynamicChannels", _, true, 0.0, true, 6.0);
+	g_cvFramesToSkip = CreateConVar("sm_topdefenders_frames_to_skip", "10", "Number of frames to skip before client UI.", _, true, 0.0, true, 66.0);
 
 	g_cvPrint.AddChangeHook(OnConVarChange);
 	g_cvPrintPos.AddChangeHook(OnConVarChange);
 	g_cvPrintColor.AddChangeHook(OnConVarChange);
+	g_cvFramesToSkip.AddChangeHook(OnConVarChange);
 
 	g_hCookie_HideCrown  = RegClientCookie("topdefenders_hidecrown",  "Enable/disable crown model", CookieAccess_Private);
 	g_hCookie_HideDialog = RegClientCookie("topdefenders_hidedialog", "Enable/disable top left dialog", CookieAccess_Private);
@@ -585,9 +588,6 @@ public Action UpdateDefendersList(Handle timer)
 
 public Action UpdateClientUI(int client)
 {
-	if (!IsClientInGame(client))
-		return Plugin_Continue;
-
 	int iDisplayRank = GetClientRank(client);
 	int rank = iDisplayRank - 1;
 
@@ -1057,6 +1057,8 @@ public void GetConVars()
 
 	g_cvPrintColor.GetString(ColorValue, sizeof(ColorValue));
 	ColorStringToArray(ColorValue, g_iPrintColor);
+
+	g_iFramesToSkip = GetConVarInt(g_cvFramesToSkip);
 }
 
 int GetClientSpectatorMode(int client)
@@ -1069,9 +1071,26 @@ int GetClientSpectatorTarget(int client)
 	return GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
 }
 
-public void LagReducer_OnClientGameFrame(int client)
+public void OnGameFrame()
 {
-	UpdateClientUI(client);
+	static int iFrame = 0;
+	iFrame++;
+
+	if (iFrame % g_iFramesToSkip != 0)
+		return;
+
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (!IsClientInGame(client))
+			continue;
+
+		if (IsFakeClient(client))
+			continue;
+
+		UpdateClientUI(client);
+	}
+
+	iFrame = 0;
 }
 
 //---------------------------------------
