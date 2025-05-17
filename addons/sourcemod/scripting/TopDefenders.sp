@@ -102,7 +102,7 @@ public void OnPluginStart()
 	g_cvPrint = CreateConVar("sm_topdefenders_print", "0", "2 - Display in hud, 1 - In chat, 0 - Both", _, true, 0.0, true, 2.0);
 	g_cvPrintPos = CreateConVar("sm_topdefenders_print_position", "0.02 0.25", "The X and Y position for the hud.");
 	g_cvPrintColor = CreateConVar("sm_topdefenders_print_color", "255 255 255", "RGB color value for the hud.");
-	g_cvHUDChannel = CreateConVar("sm_topdefenders_hud_channel", "1", "The channel for the hud if using DynamicChannels", _, true, 0.0, true, 6.0);
+	g_cvHUDChannel = CreateConVar("sm_topdefenders_hud_channel", "1", "The channel for the hud if using DynamicChannels", _, true, 0.0, true, 5.0);
 	g_cvFramesToSkip = CreateConVar("sm_topdefenders_frames_to_skip", "10", "Number of frames to skip before client UI.", _, true, 0.0, true, 66.0);
 
 	g_cvPrint.AddChangeHook(OnConVarChange);
@@ -711,7 +711,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	}
 
 	int iHUDChannel = g_cvHUDChannel.IntValue;
-	if (iHUDChannel < 0 || iHUDChannel > 6)
+	if (iHUDChannel < 0 || iHUDChannel > 5)
 		iHUDChannel = 1;
 
 	bool bDynamicAvailable = g_bPlugin_DynamicChannels && CanTestFeatures() && GetFeatureStatus(FeatureType_Native, "GetDynamicChannel") == FeatureStatus_Available;
