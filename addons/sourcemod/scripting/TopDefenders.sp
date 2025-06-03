@@ -37,7 +37,7 @@ ConVar g_hCVar_ProtectionMinimal3;
 ConVar g_hCVar_ProtectionMinimal4;
 
 ConVar g_cvHat, g_cvEvent, g_cvIdleTime, g_cvPrint, g_cvPrintPos, g_cvPrintColor, g_cvDisplayType, g_cvScoreboardType, g_cvHUDChannel;
-ConVar g_cvFramesToSkip;
+ConVar g_cvFramesToSkip, g_hCVar_ProtectionAllowOriginal;
 
 int g_iPrintColor[3];
 float g_fPrintPos[2];
@@ -93,6 +93,7 @@ public void OnPluginStart()
 	g_hCVar_ProtectionMinimal2 = CreateConVar("sm_topdefenders_minimal_2", "30", "Minimum active players to enable mother zombie immunity for Top 2", FCVAR_NONE, true, 1.0, true, 64.0);
 	g_hCVar_ProtectionMinimal3 = CreateConVar("sm_topdefenders_minimal_3", "45", "Minimum active players to enable mother zombie immunity for Top 3", FCVAR_NONE, true, 1.0, true, 64.0);
 	g_hCVar_ProtectionMinimal4 = CreateConVar("sm_topdefenders_minimal_4", "60", "Minimum active players to enable mother zombie immunity for Top 4", FCVAR_NONE, true, 1.0, true, 65.0);
+	g_hCVar_ProtectionAllowOriginal = CreateConVar("sm_topdefenders_allow_infect", "1", "Allow infection of protected player when no other players available (0 = block infection, 1 = allow infection).\n Should be set to 1 in production to prevent game-breaking situations where no mother zombie is infected!", FCVAR_NONE, true, 0.0, true, 1.0);
 
 	g_cvScoreboardType = CreateConVar("sm_topdefenders_scoreboard_type", "1", "0 = Disabled, 1 = Replace deaths by your topdefender position", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvDisplayType = CreateConVar("sm_topdefenders_display_type", "0", "0 = Ordered by damages, 1 = Ordered by kills", FCVAR_NONE, true, 0.0, true, 1.0);
@@ -834,10 +835,10 @@ stock void RemoveHat(int client)
 
 stock void RemoveAllHats()
 {
-    for (int client = 1; client <= MaxClients; client++)
-    {
-        RemoveHat(client);
-    }
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		RemoveHat(client);
+	}
 }
 
 stock void CreateHat(int client)
@@ -956,47 +957,112 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 	EmitSoundToClient(client, HOLY_SOUND_COMMON, .volume=1.0);
 }
 
+// Helper function to check if a player should be protected based on their rank and active players
+stock bool IsPlayerProtected(int steamID, int activePlayers, bool protectionEnabled, bool playerProtection)
+{
+	if (!protectionEnabled || playerProtection)
+		return false;
+
+	// Check each rank's protection threshold
+	if (steamID == g_iPlayerWinner[0] && activePlayers >= g_hCVar_ProtectionMinimal1.IntValue)
+		return true;
+	if (steamID == g_iPlayerWinner[1] && activePlayers >= g_hCVar_ProtectionMinimal2.IntValue)
+		return true;
+	if (steamID == g_iPlayerWinner[2] && activePlayers >= g_hCVar_ProtectionMinimal3.IntValue)
+		return true;
+	if (steamID == g_iPlayerWinner[3] && activePlayers >= g_hCVar_ProtectionMinimal4.IntValue)
+		return true;
+
+	return false;
+}
+
 public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, bool &respawnOverride, bool &respawn)
 {
-	char notifHudMsg[255];
-	char notifChatMsg[255];
+	if (!motherInfect)
+		return Plugin_Continue;
+
+	bool protectionEnabled = g_hCVar_Protection.BoolValue;
+	if (!protectionEnabled)
+		return Plugin_Continue;
+
+	int iSteamAccountID = GetSteamAccountID(client);
 	int activePlayers = GetTeamClientCount(CS_TEAM_CT) + GetTeamClientCount(CS_TEAM_T);
 
-	if (motherInfect)
+	// Check if client should be protected
+	if (!g_bPlayerImmune[client] && !IsPlayerProtected(iSteamAccountID, activePlayers, protectionEnabled, g_bProtection[client]))
+		return Plugin_Continue;
+
+	// Find another player to infect instead
+	int newClient = -1;
+	int attempts = 0;
+	int maxAttempts = MaxClients; // Prevent infinite loop
+
+	while (attempts < maxAttempts)
 	{
+		// Get random player
+		newClient = GetRandomPlayer(CS_TEAM_CT);
+
+		// No players available
+		if (newClient == -1)
+			break;
+
+		// Check if this player should be protected
+		int newPlayerSteamID = GetSteamAccountID(newClient);
+
+		// Found valid player
+		if (!g_bPlayerImmune[newClient] && !IsPlayerProtected(newPlayerSteamID, activePlayers, protectionEnabled, g_bProtection[newClient]))
+			break;
+
+		attempts++;
+	}
+
+	if (newClient != -1 && attempts < maxAttempts)
+	{
+		// Change target to new client first
+		client = newClient;
+
 		SetGlobalTransTarget(client);
-		int iSteamAccountID = GetSteamAccountID(client);
 
-		if (g_hCVar_Protection.BoolValue
-			&& !g_bProtection[client]
-			&& ((g_iPlayerWinner[0] == iSteamAccountID && activePlayers >= g_hCVar_ProtectionMinimal1.IntValue) ||
-			(g_iPlayerWinner[1] == iSteamAccountID && activePlayers >= g_hCVar_ProtectionMinimal2.IntValue) ||
-			(g_iPlayerWinner[2] == iSteamAccountID && activePlayers >= g_hCVar_ProtectionMinimal3.IntValue) ||
-			(g_iPlayerWinner[3] == iSteamAccountID && activePlayers >= g_hCVar_ProtectionMinimal4.IntValue)))
-		{
-			char sBuffer[64], sKnifer[64], sDefender[64];
-			FormatEx(sKnifer, sizeof(sKnifer), "%t", "Knifer");
-			FormatEx(sDefender, sizeof(sDefender), "%t", "Defender");
-			FormatEx(sBuffer, sizeof(sBuffer), "%s", g_Plugin_KnifeMode ? sKnifer : sDefender);
-			FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t \n%t", "protected", "The top", sBuffer);
-			FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t %t", "protected", "The top", sBuffer);
-		}
-		else if (g_bPlayerImmune[client] == true)
-		{
-			FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t", "Admin Protection");
-			FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t", "Admin Protection");
-		}
+		// Then notify about protection
+		char sBuffer[64], sKnifer[64], sDefender[64];
+		FormatEx(sKnifer, sizeof(sKnifer), "%t", "Knifer");
+		FormatEx(sDefender, sizeof(sDefender), "%t", "Defender");
+		FormatEx(sBuffer, sizeof(sBuffer), "%s", g_Plugin_KnifeMode ? sKnifer : sDefender);
 
-		if (notifHudMsg[0] != '\0' && notifChatMsg[0] != '\0')
+		char notifHudMsg[255], notifChatMsg[255];
+		FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t \n%t", "protected", "The top", sBuffer);
+		FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t %t", "protected", "The top", sBuffer);
+
+		SetImmunity(client, notifHudMsg, notifChatMsg);
+		Call_StartForward(g_hClientProtectedForward);
+		Call_PushCell(client);
+		Call_Finish();
+
+		return Plugin_Changed;
+	}
+
+	// No valid players found, check if we should allow original infection
+	return g_hCVar_ProtectionAllowOriginal.BoolValue ? Plugin_Continue : Plugin_Handled;
+}
+
+// Helper function to get random player from team
+stock int GetRandomPlayer(int team)
+{
+	int[] players = new int[MaxClients];
+	int count = 0;
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && IsPlayerAlive(i) && GetClientTeam(i) == team)
 		{
-			SetImmunity(client, notifHudMsg, notifChatMsg);
-			Call_StartForward(g_hClientProtectedForward);
-			Call_PushCell(client);
-			Call_Finish();
-			return Plugin_Handled;
+			players[count++] = i;
 		}
 	}
-	return Plugin_Continue;
+
+	if (count == 0)
+		return -1;
+
+	return players[GetRandomInt(0, count - 1)];
 }
 
 void SendDialog(int client, const char[] display, const int level, const int time, any ...)
