@@ -1018,12 +1018,9 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 
 	if (newClient != -1 && attempts < maxAttempts)
 	{
-		// Change target to new client first
-		client = newClient;
-
 		SetGlobalTransTarget(client);
 
-		// Then notify about protection
+		// Notify about protection
 		char sBuffer[64], sKnifer[64], sDefender[64];
 		FormatEx(sKnifer, sizeof(sKnifer), "%t", "Knifer");
 		FormatEx(sDefender, sizeof(sDefender), "%t", "Defender");
@@ -1037,6 +1034,9 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 		Call_StartForward(g_hClientProtectedForward);
 		Call_PushCell(client);
 		Call_Finish();
+
+		// Then change the infect target to the new client
+		client = newClient;
 
 		return Plugin_Changed;
 	}
