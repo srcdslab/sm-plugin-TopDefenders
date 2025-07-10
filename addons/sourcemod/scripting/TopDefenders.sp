@@ -9,6 +9,7 @@
 #undef REQUIRE_PLUGIN
 #tryinclude <AFKManager>
 #tryinclude <DynamicChannels>
+#tryinclude <knifemode>
 #define REQUIRE_PLUGIN
 
 #include "loghelper.inc"
@@ -173,7 +174,6 @@ public void OnPluginEnd()
 public void OnAllPluginsLoaded()
 {
 	g_bPlugin_DynamicChannels = LibraryExists("DynamicChannels");
-	g_Plugin_KnifeMode = LibraryExists("KnifeMode");
 	g_Plugin_AFK = LibraryExists("AFKManager");
 }
 
@@ -181,8 +181,6 @@ public void OnLibraryAdded(const char[] name)
 {
 	if (strcmp(name, "DynamicChannels", false) == 0)
 		g_bPlugin_DynamicChannels = true;
-	else if (strcmp(name, "KnifeMode", false) == 0)
-		g_Plugin_KnifeMode = true;
 	else if (strcmp(name, "AFKManager", false) == 0)
 		g_Plugin_AFK = true;
 }
@@ -191,8 +189,6 @@ public void OnLibraryRemoved(const char[] name)
 {
 	if (strcmp(name, "DynamicChannels", false) == 0)
 		g_bPlugin_DynamicChannels = false;
-	else if (strcmp(name, "KnifeMode", false) == 0)
-		g_Plugin_KnifeMode = false;
 	else if (strcmp(name, "AFKManager", false) == 0)
 		g_Plugin_AFK = false;
 }
@@ -1041,7 +1037,6 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 		return Plugin_Changed;
 	}
 
-	// No valid players found, check if we should allow original infection
 	return g_hCVar_ProtectionAllowOriginal.BoolValue ? Plugin_Continue : Plugin_Handled;
 }
 
@@ -1188,3 +1183,10 @@ public int Native_GetClientRank(Handle plugin, int numParams)
 
 	return GetClientRank(client);
 }
+
+#if defined _KnifeMode_Included
+public void KnifeMode_OnToggle(bool bEnabled)
+{
+	g_Plugin_KnifeMode = bEnabled;
+}
+#endif
