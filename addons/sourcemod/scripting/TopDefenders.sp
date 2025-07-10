@@ -1187,6 +1187,6 @@ public int Native_GetClientRank(Handle plugin, int numParams)
 #if defined _KnifeMode_Included
 public void KnifeMode_OnToggle(bool bEnabled)
 {
-	g_bKnifeModeEnabled = bEnabled;
+	g_Plugin_KnifeMode = bEnabled;
 }
 #endif
