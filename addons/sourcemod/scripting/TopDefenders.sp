@@ -148,6 +148,17 @@ public void OnPluginStart()
 	SetCookieMenuItem(MenuHandler_CookieMenu, 0, "Top Defenders");
 }
 
+public void OnPluginEnd()
+{
+	RemoveAllHats();
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientConnected(i))
+			OnClientDisconnect(i);
+	}
+}
+
 public void OnAllPluginsLoaded()
 {
 	g_bPlugin_DynamicChannels = LibraryExists("DynamicChannels");
