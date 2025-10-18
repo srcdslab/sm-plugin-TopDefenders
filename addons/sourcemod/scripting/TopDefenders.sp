@@ -152,18 +152,6 @@ public void OnPluginEnd()
 {
 	RemoveAllHats();
 
-	if (g_hHudSync != INVALID_HANDLE)
-	{
-		CloseHandle(g_hHudSync);
-		g_hHudSync = INVALID_HANDLE;
-	}
-
-	if (g_hClientProtectedForward != INVALID_HANDLE)
-	{
-		CloseHandle(g_hClientProtectedForward);
-		g_hClientProtectedForward = INVALID_HANDLE;
-	}
-
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsClientConnected(i))
