@@ -10,7 +10,7 @@
 
 #define TopDefenders_V_MAJOR   "1"
 #define TopDefenders_V_MINOR   "13"
-#define TopDefenders_V_PATCH   "1"
+#define TopDefenders_V_PATCH   "2"
 
 #define TopDefenders_VERSION   TopDefenders_V_MAJOR..."."...TopDefenders_V_MINOR..."."...TopDefenders_V_PATCH
 
