@@ -23,13 +23,12 @@
 #define HOLY_SOUND_COMMON       "topdefenders/holy.wav"
 #define CROWN_MODEL             "models/unloze/crown_v2.mdl"
 
+bool g_bLate = false;
 bool g_bHideCrown[MAXPLAYERS+1];
 bool g_bHideDialog[MAXPLAYERS+1];
 bool g_bProtection[MAXPLAYERS+1];
 
-Handle g_hCookie_HideCrown;
-Handle g_hCookie_HideDialog;
-Handle g_hCookie_Protection;
+Handle g_hCookie_Settings;
 
 ConVar g_hCVar_Protection;
 ConVar g_hCVar_ProtectionMinimal1;
@@ -81,6 +80,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("TopDefenders_GetClientRank", Native_GetClientRank);
 
 	RegPluginLibrary("TopDefenders");
+	g_bLate = late;
 	return APLRes_Success;
 }
 
@@ -112,9 +112,7 @@ public void OnPluginStart()
 	g_cvPrintColor.AddChangeHook(OnConVarChange);
 	g_cvFramesToSkip.AddChangeHook(OnConVarChange);
 
-	g_hCookie_HideCrown  = RegClientCookie("topdefenders_hidecrown",  "Enable/disable crown model", CookieAccess_Private);
-	g_hCookie_HideDialog = RegClientCookie("topdefenders_hidedialog", "Enable/disable top left dialog", CookieAccess_Private);
-	g_hCookie_Protection = RegClientCookie("topdefenders_protection", "Enable/disable zombie protection", CookieAccess_Private);
+	g_hCookie_Settings = RegClientCookie("topdefenders_settings", "Top Defenders settings (crown/dialog/protection)", CookieAccess_Private);
 
 	g_hClientProtectedForward = CreateGlobalForward("TopDefenders_ClientProtected", ET_Ignore, Param_Cell);
 
@@ -139,13 +137,18 @@ public void OnPluginStart()
 	HookEvent("player_spawn", OnClientSpawn);
 	HookEvent("player_death", OnClientDeath);
 
+	SetCookieMenuItem(MenuHandler_CookieMenu, 0, "Top Defenders");
+
+	if (!g_bLate)
+		return;
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsClientConnected(i))
 			OnClientPutInServer(i);
 	}
 
-	SetCookieMenuItem(MenuHandler_CookieMenu, 0, "Top Defenders");
+	g_bLate = false;
 }
 
 public void OnPluginEnd()
@@ -262,7 +265,7 @@ public Action Command_DebugCrown(int client, int args)
 		return Plugin_Handled;
 	}
 
-	CreateTimer(1.0, OnClientSpawnPost, client, TIMER_FLAG_NO_MAPCHANGE);
+	CreateTimer(1.0, OnClientSpawnPost, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
 	return Plugin_Handled;
 }
 
@@ -470,7 +473,7 @@ public void OnClientPutInServer(int client)
 {
 	g_iCrownEntities[client] = INVALID_ENT_REFERENCE;
 
-	if (AreClientCookiesCached(client))
+	if (g_bLate && AreClientCookiesCached(client))
 	{
 		GetCookies(client);
 	}
@@ -478,27 +481,23 @@ public void OnClientPutInServer(int client)
 
 public void GetCookies(int client)
 {
-	char sBuffer[4];
-	GetClientCookie(client, g_hCookie_HideCrown, sBuffer, sizeof(sBuffer));
+	char sBuffer[16];
+	GetClientCookie(client, g_hCookie_Settings, sBuffer, sizeof(sBuffer));
 
+	// Parse binary string format
 	if (sBuffer[0])
-		g_bHideCrown[client] = true;
+	{
+		g_bHideCrown[client] = (sBuffer[0] == '1');
+		g_bHideDialog[client] = (sBuffer[1] == '1');
+		g_bProtection[client] = (sBuffer[2] == '1');
+	}
 	else
+	{
+		// Default values if no cookie exists
 		g_bHideCrown[client] = false;
-
-	GetClientCookie(client, g_hCookie_HideDialog, sBuffer, sizeof(sBuffer));
-
-	if (sBuffer[0])
-		g_bHideDialog[client] = true;
-	else
 		g_bHideDialog[client] = false;
-
-	GetClientCookie(client, g_hCookie_Protection, sBuffer, sizeof(sBuffer));
-
-	if (sBuffer[0])
-		g_bProtection[client] = true;
-	else
 		g_bProtection[client] = false;
+	}
 }
 
 public void OnClientCookiesCached(int client)
@@ -512,9 +511,21 @@ public void OnClientDisconnect(int client)
 
 	if (AreClientCookiesCached(client) && !IsFakeClient(client))
 	{
-		SetClientCookie(client, g_hCookie_HideCrown, g_bHideCrown[client] ? "1" : "");
-		SetClientCookie(client, g_hCookie_HideDialog, g_bHideDialog[client] ? "1" : "");
-		SetClientCookie(client, g_hCookie_Protection, g_bProtection[client] ? "1" : "");
+		// Only save cookie if at least one setting has been changed from default (all false)
+		if (g_bHideCrown[client] || g_bHideDialog[client] || g_bProtection[client])
+		{
+			char sBuffer[8];
+			FormatEx(sBuffer, sizeof(sBuffer), "%d%d%d", 
+				g_bHideCrown[client] ? 1 : 0,
+				g_bHideDialog[client] ? 1 : 0,
+				g_bProtection[client] ? 1 : 0);
+			SetClientCookie(client, g_hCookie_Settings, sBuffer);
+		}
+		else
+		{
+			// If all settings are default, delete the cookie to save space
+			SetClientCookie(client, g_hCookie_Settings, "");
+		}
 	}
 
 	g_iPlayerKills[client] = 0;
@@ -781,11 +792,12 @@ public void OnClientHurt(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 
 public void OnClientSpawn(Event hEvent, const char[] sEvent, bool bDontBroadcast)
 {
-	int client = GetClientOfUserId(hEvent.GetInt("userid"));
+	int userid = hEvent.GetInt("userid");
+	int client = GetClientOfUserId(userid);
 
 	if (g_iPlayerWinner[0] == GetSteamAccountID(client) && !g_bHideCrown[client])
 	{
-		CreateTimer(7.0, OnClientSpawnPost, client, TIMER_FLAG_NO_MAPCHANGE);
+		CreateTimer(7.0, OnClientSpawnPost, userid, TIMER_FLAG_NO_MAPCHANGE);
 	}
 }
 
@@ -864,9 +876,10 @@ stock void CreateHat(int client)
 	AcceptEntityInput(iCrownEntity, "SetParent", client);
 }
 
-public Action OnClientSpawnPost(Handle timer, any client)
+public Action OnClientSpawnPost(Handle timer, int userid)
 {
-	if (!IsClientInGame(client) || IsFakeClient(client) || !IsPlayerAlive(client))
+	int client = GetClientOfUserId(userid);
+	if (!client || !IsClientInGame(client) || IsFakeClient(client) || !IsPlayerAlive(client))
 		return Plugin_Continue;
 
 	if (GetConVarInt(g_cvHat) == 1)
