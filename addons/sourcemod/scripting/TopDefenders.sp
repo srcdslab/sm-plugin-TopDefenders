@@ -996,46 +996,29 @@ public Action ZR_OnClientInfect(int &client, int &attacker, bool &motherInfect, 
 
 	while (attempts < maxAttempts)
 	{
-		// Get random player
-		newClient = GetRandomPlayer(CS_TEAM_CT);
+		if (ZR_InfectClient(-1, _, true, _, _, true)) // Force mother infect so ZR picks a random human by itself.
+		{
+			SetGlobalTransTarget(client);
 
-		// No players available
-		if (newClient == -1)
-			break;
+			// Notify about protection
+			char sBuffer[64], sKnifer[64], sDefender[64];
+			FormatEx(sKnifer, sizeof(sKnifer), "%t", "Knifer");
+			FormatEx(sDefender, sizeof(sDefender), "%t", "Defender");
+			FormatEx(sBuffer, sizeof(sBuffer), "%s", g_Plugin_KnifeMode ? sKnifer : sDefender);
+	
+			char notifHudMsg[255], notifChatMsg[255];
+			FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t \n%t", "protected", "The top", sBuffer);
+			FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t %t", "protected", "The top", sBuffer);
+	
+			SetImmunity(client, notifHudMsg, notifChatMsg);
+			Call_StartForward(g_hClientProtectedForward);
+			Call_PushCell(client);
+			Call_Finish();
 
-		// Check if this player should be protected
-		int newPlayerSteamID = GetSteamAccountID(newClient);
-
-		// Found valid player
-		if (!g_bPlayerImmune[newClient] && !IsPlayerProtected(newPlayerSteamID, activePlayers, protectionEnabled, g_bProtection[newClient]))
-			break;
+			return Plugin_Handled;
+		}
 
 		attempts++;
-	}
-
-	if (newClient != -1 && attempts < maxAttempts)
-	{
-		SetGlobalTransTarget(client);
-
-		// Notify about protection
-		char sBuffer[64], sKnifer[64], sDefender[64];
-		FormatEx(sKnifer, sizeof(sKnifer), "%t", "Knifer");
-		FormatEx(sDefender, sizeof(sDefender), "%t", "Defender");
-		FormatEx(sBuffer, sizeof(sBuffer), "%s", g_Plugin_KnifeMode ? sKnifer : sDefender);
-
-		char notifHudMsg[255], notifChatMsg[255];
-		FormatEx(notifHudMsg, sizeof(notifHudMsg), "%t \n%t", "protected", "The top", sBuffer);
-		FormatEx(notifChatMsg, sizeof(notifChatMsg), "%t %t", "protected", "The top", sBuffer);
-
-		SetImmunity(client, notifHudMsg, notifChatMsg);
-		Call_StartForward(g_hClientProtectedForward);
-		Call_PushCell(client);
-		Call_Finish();
-
-		// Then change the infect target to the new client
-		client = newClient;
-
-		return Plugin_Changed;
 	}
 
 	return g_hCVar_ProtectionAllowOriginal.BoolValue ? Plugin_Continue : Plugin_Handled;
