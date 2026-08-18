@@ -15,9 +15,9 @@ This repository contains **TopDefenders**, a SourcePawn plugin for SourceMod tha
 ## Technical Environment
 
 - **Language**: SourcePawn (Source engine scripting language)
-- **Platform**: SourceMod 1.12+ (minimum), 1.11.0-git6934 (current CI target)
-- **Build System**: SourceKnight 0.2 (build automation tool for SourceMod)
-- **Compiler**: SourcePawn compiler (spcomp) via SourceKnight
+- **Platform**: SourceMod 1.12+ (minimum), 1.12.x (current CI target)
+- **Build System**: Native GitHub Actions (rumblefrog/setup-sp)
+- **Compiler**: SourcePawn compiler (spcomp) via rumblefrog/setup-sp
 - **Target Games**: Counter-Strike: Source, Counter-Strike: Global Offensive
 - **Required Dependencies**: SourceMod, ZombieReloaded, ClientPrefs, MultiColors, SDKTools
 - **Optional Dependencies**: AFKManager, DynamicChannels, KnifeMode, smlib
@@ -27,7 +27,7 @@ This repository contains **TopDefenders**, a SourcePawn plugin for SourceMod tha
 ```
 /
 ├── .github/
-│   ├── workflows/ci.yml           # CI/CD using action-sourceknight@v1
+│   ├── workflows/ci.yml           # CI/CD using rumblefrog/setup-sp
 │   └── dependabot.yml             # GitHub Actions dependency management
 ├── addons/sourcemod/              # Standard SourceMod directory structure
 │   ├── scripting/
@@ -43,9 +43,8 @@ This repository contains **TopDefenders**, a SourcePawn plugin for SourceMod tha
 │   │   └── topdefenders_downloadlist.ini # Client download manifest
 │   ├── materials/models/unloze/   # Crown model textures (.vmt, .vtf)
 │   └── models/unloze/             # Crown 3D model files (.mdl, .phy, .vtx, .vvd)
-├── sourceknight.yaml             # Build configuration and dependencies
 ├── README.md                     # Basic installation guide
-└── .gitignore                    # Excludes .smx, build/, .sourceknight/, etc.
+└── .gitignore                    # Excludes .smx, build/, etc.
 ```
 
 ## Code Standards & Conventions
@@ -95,23 +94,20 @@ public void OnPluginEnd()
 
 ### Building the Plugin
 ```bash
-# The project uses SourceKnight for building (automated in CI)
-# Locally, if SourceKnight is installed:
-sourceknight build
-
-# Manual compilation (if you have SourceMod compiler):
-spcomp addons/sourcemod/scripting/TopDefenders.sp -o addons/sourcemod/plugins/TopDefenders.smx
+# The project builds via native GitHub Actions (see .github/workflows/ci.yml)
+# Manual compilation (if you have SourceMod compiler and includes on hand):
+spcomp -i addons/sourcemod/scripting/include addons/sourcemod/scripting/TopDefenders.sp -o addons/sourcemod/plugins/TopDefenders.smx
 ```
 
 ### CI/CD Pipeline
-- **Trigger**: Push to main/master, tags, or pull requests
-- **Builder**: `maxime1907/action-sourceknight@v1`
-- **Artifacts**: Packaged plugin with assets (.tar.gz)
+- **Trigger**: Push, pull requests, workflow_dispatch
+- **Builder**: `rumblefrog/setup-sp@v1.3.1` (SourceMod 1.12.x)
+- **Artifacts**: Packaged plugin (.tar.gz)
 - **Releases**: Automatic on tags, "latest" on main/master pushes
 
 ### Development Environment Setup
 1. Install SourceMod development tools
-2. Clone with dependencies resolved via SourceKnight
+2. Clone the repository; dependencies are fetched by the CI workflow directly from their git repos
 3. Understand that this plugin requires ZombieReloaded to function
 4. Test on a development server with CS:S/CS:GO and ZR loaded
 
