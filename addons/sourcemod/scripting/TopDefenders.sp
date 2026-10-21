@@ -15,6 +15,8 @@
 #include "loghelper.inc"
 #include "utilshelper.inc"
 
+#pragma newdecls required
+
 #define SPECMODE_NONE           0
 #define SPECMODE_FIRSTPERSON    4
 #define SPECMODE_THIRDPERSON    5
