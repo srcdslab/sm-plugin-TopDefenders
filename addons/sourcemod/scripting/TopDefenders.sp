@@ -15,6 +15,8 @@
 #include "loghelper.inc"
 #include "utilshelper.inc"
 
+#pragma newdecls required
+
 #define SPECMODE_NONE           0
 #define SPECMODE_FIRSTPERSON    4
 #define SPECMODE_THIRDPERSON    5
@@ -28,7 +30,7 @@ bool g_bHideCrown[MAXPLAYERS+1];
 bool g_bHideDialog[MAXPLAYERS+1];
 bool g_bProtection[MAXPLAYERS+1];
 
-Handle g_hCookie_Settings;
+Cookie g_hCookie_Settings;
 
 ConVar g_hCVar_Protection;
 ConVar g_hCVar_ProtectionMinimal1;
@@ -57,9 +59,9 @@ int g_iFramesToSkip;
 
 bool g_bPlayerImmune[MAXPLAYERS + 1];
 
-Handle g_hHudSync = INVALID_HANDLE;
-Handle g_hUpdateTimer = INVALID_HANDLE;
-Handle g_hClientProtectedForward = INVALID_HANDLE;
+Handle g_hHudSync = null;
+Handle g_hUpdateTimer = null;
+GlobalForward g_hClientProtectedForward = null;
 
 bool g_bPlugin_DynamicChannels = false;
 bool g_Plugin_KnifeMode = false;
@@ -112,16 +114,16 @@ public void OnPluginStart()
 	g_cvPrintColor.AddChangeHook(OnConVarChange);
 	g_cvFramesToSkip.AddChangeHook(OnConVarChange);
 
-	g_hCookie_Settings = RegClientCookie("topdefenders_settings", "Top Defenders settings (crown/dialog/protection)", CookieAccess_Private);
+	g_hCookie_Settings = new Cookie("topdefenders_settings", "Top Defenders settings (crown/dialog/protection)", CookieAccess_Private);
 
-	g_hClientProtectedForward = CreateGlobalForward("TopDefenders_ClientProtected", ET_Ignore, Param_Cell);
+	g_hClientProtectedForward = new GlobalForward("TopDefenders_ClientProtected", ET_Ignore, Param_Cell);
 
 	g_hHudSync = CreateHudSynchronizer();
 
 	AutoExecConfig(true);
 	GetConVars();
 
-	UpdateDefendersList(INVALID_HANDLE);
+	UpdateDefendersList(null);
 
 	RegConsoleCmd("sm_togglecrown",    OnToggleCrown, "Enable/disable crown model");
 	RegConsoleCmd("sm_toggledialog",   OnToggleDialog, "Enable/disable top left dialog");
@@ -238,7 +240,7 @@ public Action OnToggleStatus(int client, int args)
 		else
 		{
 			char sType[64];
-			if (GetConVarInt(g_cvDisplayType) != 0 || g_Plugin_KnifeMode)
+			if (g_cvDisplayType.IntValue != 0 || g_Plugin_KnifeMode)
 				FormatEx(sType, sizeof(sType), "%t", "KILLS");
 			else
 				FormatEx(sType, sizeof(sType), "%t", "DMG");
@@ -357,7 +359,7 @@ public void ToggleCrown(int client)
 	}
 	else if (!g_bHideCrown[client] && IsValidClient(client) && IsPlayerAlive(client) && g_iPlayerWinner[0] == iSteamAccountID)
 	{
-		if (GetConVarInt(g_cvHat) == 1)
+		if (g_cvHat.IntValue == 1)
 		{
 			CreateHat(client);
 		}
@@ -448,7 +450,7 @@ public void OnMapStart()
 	GetTeams();
 	ResetImmunity();
 
-	g_hUpdateTimer = CreateTimer(0.5, UpdateDefendersList, INVALID_HANDLE, TIMER_REPEAT);
+	g_hUpdateTimer = CreateTimer(0.5, UpdateDefendersList, _, TIMER_REPEAT);
 }
 
 public void OnConfigsExecuted()
@@ -460,10 +462,9 @@ public void OnMapEnd()
 {
 	RemoveAllHats();
 
-	if (g_hUpdateTimer != INVALID_HANDLE)
+	if (g_hUpdateTimer != null)
 	{
-		KillTimer(g_hUpdateTimer);
-		g_hUpdateTimer = INVALID_HANDLE;
+		delete g_hUpdateTimer;
 	}
 	if (g_Plugin_KnifeMode)
 		g_cvDisplayType.IntValue = iDefaultType;
@@ -482,7 +483,7 @@ public void OnClientPutInServer(int client)
 public void GetCookies(int client)
 {
 	char sBuffer[16];
-	GetClientCookie(client, g_hCookie_Settings, sBuffer, sizeof(sBuffer));
+	g_hCookie_Settings.Get(client, sBuffer, sizeof(sBuffer));
 
 	// Parse binary string format
 	if (sBuffer[0])
@@ -519,12 +520,12 @@ public void OnClientDisconnect(int client)
 				g_bHideCrown[client] ? 1 : 0,
 				g_bHideDialog[client] ? 1 : 0,
 				g_bProtection[client] ? 1 : 0);
-			SetClientCookie(client, g_hCookie_Settings, sBuffer);
+			g_hCookie_Settings.Set(client, sBuffer);
 		}
 		else
 		{
 			// If all settings are default, delete the cookie to save space
-			SetClientCookie(client, g_hCookie_Settings, "");
+			g_hCookie_Settings.Set(client, "");
 		}
 	}
 
@@ -558,13 +559,13 @@ public Action UpdateDefendersList(Handle timer)
 		if (!IsClientInGame(client))
 			continue;
 
-		if (GetConVarInt(g_cvDisplayType) == 0 && g_iPlayerDamage[client])
+		if (g_cvDisplayType.IntValue == 0 && g_iPlayerDamage[client])
 		{
 			g_iSortedList[g_iSortedCount][0] = client;
 			g_iSortedList[g_iSortedCount][1] = g_iPlayerDamage[client];
 			g_iSortedCount++;
 		}
-		else if (GetConVarInt(g_cvDisplayType) == 1 && g_iPlayerKills[client])
+		else if (g_cvDisplayType.IntValue == 1 && g_iPlayerKills[client])
 		{
 			g_iSortedList[g_iSortedCount][0] = client;
 			g_iSortedList[g_iSortedCount][1] = g_iPlayerKills[client];
@@ -576,7 +577,7 @@ public Action UpdateDefendersList(Handle timer)
 
 	g_iDialogLevel--;
 
-	if (timer == INVALID_HANDLE)
+	if (timer == null)
 		return Plugin_Stop;
 
 	return Plugin_Continue;
@@ -588,7 +589,7 @@ public Action UpdateClientUI(int client)
 	int rank = iDisplayRank - 1;
 
 	// Scoreboard
-	if (GetConVarInt(g_cvScoreboardType) == 1)
+	if (g_cvScoreboardType.IntValue == 1)
 	{
 		if (rank >= g_iSortedCount)
 		{
@@ -640,7 +641,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	if (g_Plugin_KnifeMode)
 		g_cvDisplayType.IntValue = 1;
 
-	UpdateDefendersList(INVALID_HANDLE);
+	UpdateDefendersList(null);
 
 	for (int rank = 0; rank < g_iSortedCount; rank++)
 	{
@@ -659,7 +660,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	String_ToUpper(sMenuTitle, sBuffer, sizeof(sBuffer));
 
 	char sType[64];
-	if (GetConVarInt(g_cvDisplayType) != 1 || !g_Plugin_KnifeMode)
+	if (g_cvDisplayType.IntValue != 1 || !g_Plugin_KnifeMode)
 		FormatEx(sType, sizeof(sType), "%t", "DMG");
 	else
 		FormatEx(sType, sizeof(sType), "%t", "KILLS");
@@ -882,7 +883,7 @@ public Action OnClientSpawnPost(Handle timer, int userid)
 	if (!client || !IsClientInGame(client) || IsFakeClient(client) || !IsPlayerAlive(client))
 		return Plugin_Continue;
 
-	if (GetConVarInt(g_cvHat) == 1)
+	if (g_cvHat.IntValue == 1)
 	{
 		CreateHat(client);
 	}
@@ -915,37 +916,39 @@ public void SetImmunity(int client, char[] notifHudMsg, char[] notifChatMsg)
 	{
 		if (GetUserMessageType() == UM_Protobuf)
 		{
-			PbSetInt(hMessageInfection, "channel", 50);
-			PbSetInt(hMessageInfection, "effect", 0);
-			PbSetColor(hMessageInfection, "clr1", {255, 255, 255, 255});
-			PbSetColor(hMessageInfection, "clr2", {255, 255, 255, 255});
-			PbSetVector2D(hMessageInfection, "pos", view_as<float>({-1.0, 0.2}));
-			PbSetFloat(hMessageInfection, "fade_in_time", 0.1);
-			PbSetFloat(hMessageInfection, "fade_out_time", 0.1);
-			PbSetFloat(hMessageInfection, "hold_time", 5.0);
-			PbSetFloat(hMessageInfection, "fx_time", 0.0);
-			PbSetString(hMessageInfection, "text", notifHudMsg);
+			Protobuf pb = UserMessageToProtobuf(hMessageInfection);
+			pb.SetInt("channel", 50);
+			pb.SetInt("effect", 0);
+			pb.SetColor("clr1", {255, 255, 255, 255});
+			pb.SetColor("clr2", {255, 255, 255, 255});
+			pb.SetVector2D("pos", view_as<float>({-1.0, 0.2}));
+			pb.SetFloat("fade_in_time", 0.1);
+			pb.SetFloat("fade_out_time", 0.1);
+			pb.SetFloat("hold_time", 5.0);
+			pb.SetFloat("fx_time", 0.0);
+			pb.SetString("text", notifHudMsg);
 			EndMessage();
 		}
 		else
 		{
-			BfWriteByte(hMessageInfection, 50);
-			BfWriteFloat(hMessageInfection, -1.0);
-			BfWriteFloat(hMessageInfection, 0.2);
-			BfWriteByte(hMessageInfection, 0);
-			BfWriteByte(hMessageInfection, 255);
-			BfWriteByte(hMessageInfection, 255);
-			BfWriteByte(hMessageInfection, 255);
-			BfWriteByte(hMessageInfection, 255);
-			BfWriteByte(hMessageInfection, 255);
-			BfWriteByte(hMessageInfection, 255);
-			BfWriteByte(hMessageInfection, 255);
-			BfWriteByte(hMessageInfection, 0);
-			BfWriteFloat(hMessageInfection, 0.1);
-			BfWriteFloat(hMessageInfection, 0.1);
-			BfWriteFloat(hMessageInfection, 5.0);
-			BfWriteFloat(hMessageInfection, 0.0);
-			BfWriteString(hMessageInfection, notifHudMsg);
+			BfWrite bf = UserMessageToBfWrite(hMessageInfection);
+			bf.WriteByte(50);
+			bf.WriteFloat(-1.0);
+			bf.WriteFloat(0.2);
+			bf.WriteByte(0);
+			bf.WriteByte(255);
+			bf.WriteByte(255);
+			bf.WriteByte(255);
+			bf.WriteByte(255);
+			bf.WriteByte(255);
+			bf.WriteByte(255);
+			bf.WriteByte(255);
+			bf.WriteByte(0);
+			bf.WriteFloat(0.1);
+			bf.WriteFloat(0.1);
+			bf.WriteFloat(5.0);
+			bf.WriteFloat(0.0);
+			bf.WriteString(notifHudMsg);
 			EndMessage();
 		}
 	}
@@ -1120,7 +1123,7 @@ public void GetConVars()
 	g_cvPrintColor.GetString(ColorValue, sizeof(ColorValue));
 	ColorStringToArray(ColorValue, g_iPrintColor);
 
-	g_iFramesToSkip = GetConVarInt(g_cvFramesToSkip);
+	g_iFramesToSkip = g_cvFramesToSkip.IntValue;
 }
 
 int GetClientSpectatorMode(int client)
