@@ -59,6 +59,9 @@ int g_iFramesToSkip;
 
 bool g_bPlayerImmune[MAXPLAYERS + 1];
 
+int g_iSpectatorTarget[MAXPLAYERS + 1];
+bool g_bSpectatorTargetsCached = false;
+
 Handle g_hHudSync = null;
 Handle g_hUpdateTimer = null;
 GlobalForward g_hClientProtectedForward = null;
@@ -1079,21 +1082,37 @@ void SendDialog(int client, const char[] display, const int level, const int tim
 		CreateDialog(client, kv, DialogType_Msg);
 	}
 
+	// Spectators don't change during the frame, look them up once instead of once per client
+	if (!g_bSpectatorTargetsCached)
+		CacheSpectatorTargets();
+
 	for (int spec = 1; spec <= MaxClients; spec++)
 	{
-		if (!IsClientInGame(spec) || !IsClientObserver(spec) || g_bHideDialog[spec])
-			continue;
-
-		int specMode   = GetClientSpectatorMode(spec);
-		int specTarget = GetClientSpectatorTarget(spec);
-
-		if ((specMode == SPECMODE_FIRSTPERSON || specMode == SPECMODE_THIRDPERSON) && specTarget == client)
+		if (g_iSpectatorTarget[spec] == client)
 		{
 			CreateDialog(spec, kv, DialogType_Msg);
 		}
 	}
 
 	delete kv;
+}
+
+void CacheSpectatorTargets()
+{
+	for (int spec = 1; spec <= MaxClients; spec++)
+	{
+		g_iSpectatorTarget[spec] = 0;
+
+		if (!IsClientInGame(spec) || !IsClientObserver(spec) || g_bHideDialog[spec])
+			continue;
+
+		int specMode = GetClientSpectatorMode(spec);
+
+		if (specMode == SPECMODE_FIRSTPERSON || specMode == SPECMODE_THIRDPERSON)
+			g_iSpectatorTarget[spec] = GetClientSpectatorTarget(spec);
+	}
+
+	g_bSpectatorTargetsCached = true;
 }
 
 stock int GetClientRank(int client)
@@ -1143,6 +1162,9 @@ public void OnGameFrame()
 
 	if (iFrame % g_iFramesToSkip != 0)
 		return;
+
+	// Filled on the first dialog sent this frame
+	g_bSpectatorTargetsCached = false;
 
 	for (int client = 1; client <= MaxClients; client++)
 	{
