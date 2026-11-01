@@ -30,15 +30,25 @@
 		"pt"    "Top defensores"
 		"chi"   "防守者排行"
 	}
-	"Menu Title Knifer"
+	"Round End Title Defender"
 	{
-		"en"    "Top Knifers"
-		"fr"    "Top knifeurs"
-		"ru"    "Топ ножевиков"
-		"es"    "Top acuchilladores"
-		"de"    "Top-Messerkämpfer"
-		"pt"    "Top faqueiros"
-		"chi"   "刀手排行"
+		"en"    "TOP DEFENDERS:"
+		"fr"    "TOP DÉFENSEURS :"
+		"ru"    "ТОП ЗАЩИТНИКОВ:"
+		"es"    "TOP DEFENSORES:"
+		"de"    "TOP-VERTEIDIGER:"
+		"pt"    "TOP DEFENSORES:"
+		"chi"   "防守者排行："
+	}
+	"Round End Title Knifer"
+	{
+		"en"    "TOP KNIFERS:"
+		"fr"    "TOP KNIFEURS :"
+		"ru"    "ТОП НОЖЕВИКОВ:"
+		"es"    "TOP ACUCHILLADORES:"
+		"de"    "TOP-MESSERKÄMPFER:"
+		"pt"    "TOP FAQUEIROS:"
+		"chi"   "刀手排行："
 	}
 	"Cookie Menu Title"
 	{
@@ -160,16 +170,27 @@
 		"pt"    "Imunidade"
 		"chi"   "免疫"
 	}
-	"Immunity Status"
+	"Immunity Status Enabled"
 	{
-		"#format" "{1:s},{2:s}"
-		"en"    "{default}has {lightgreen}{1} {default}mother zombie immunity on {olive}{2}"
-		"fr"    "{default}a modifié l'immunité zombie mère de {olive}{2}{default} : {lightgreen}{1}"
-		"ru"    "{default}изменил иммунитет к матери-зомби для {olive}{2}{default}: {lightgreen}{1}"
-		"es"    "{default}cambió la inmunidad a zombi madre de {olive}{2}{default}: {lightgreen}{1}"
-		"de"    "{default}hat die Mutterzombie-Immunität von {olive}{2}{default} geändert: {lightgreen}{1}"
-		"pt"    "{default}alterou a imunidade a zumbi-mãe de {olive}{2}{default}: {lightgreen}{1}"
-		"chi"   "{default}修改了 {olive}{2}{default} 的母体僵尸免疫：{lightgreen}{1}"
+		"#format" "{1:t}"
+		"en"    "{default}has {lightgreen}Enabled {default}mother zombie immunity on {olive}{1}"
+		"fr"    "{default}a {lightgreen}activé {default}l'immunité zombie mère pour {olive}{1}"
+		"ru"    "{default}{lightgreen}включил(а) {default}иммунитет к матери-зомби для {olive}{1}"
+		"es"    "{default}{lightgreen}activó {default}la inmunidad a zombi madre para {olive}{1}"
+		"de"    "{default}hat die Mutterzombie-Immunität für {olive}{1} {lightgreen}aktiviert"
+		"pt"    "{default}{lightgreen}ativou {default}a imunidade a zumbi-mãe para {olive}{1}"
+		"chi"   "{default}{lightgreen}开启了 {olive}{1}{default} 的母体僵尸免疫"
+	}
+	"Immunity Status Disabled"
+	{
+		"#format" "{1:t}"
+		"en"    "{default}has {lightgreen}Disabled {default}mother zombie immunity on {olive}{1}"
+		"fr"    "{default}a {lightgreen}désactivé {default}l'immunité zombie mère pour {olive}{1}"
+		"ru"    "{default}{lightgreen}отключил(а) {default}иммунитет к матери-зомби для {olive}{1}"
+		"es"    "{default}{lightgreen}desactivó {default}la inmunidad a zombi madre para {olive}{1}"
+		"de"    "{default}hat die Mutterzombie-Immunität für {olive}{1} {lightgreen}deaktiviert"
+		"pt"    "{default}{lightgreen}desativou {default}a imunidade a zumbi-mãe para {olive}{1}"
+		"chi"   "{default}{lightgreen}关闭了 {olive}{1}{default} 的母体僵尸免疫"
 	}
 	"Immunity Enabled"
 	{
@@ -190,16 +211,6 @@
 		"de"    "Du bist nicht mehr davor geschützt, Mutterzombie zu werden"
 		"pt"    "Você não está mais protegido de ser zumbi-mãe"
 		"chi"   "你不再受保护，可能会成为母体僵尸"
-	}
-	"Admin Protection"
-	{
-		"en"	"An administrator has protected you from being Mother Zombie"
-		"fr"	"Un administrateur vous a protégé contre le fait d'être zombie mère"
-		"ru"	"Администратор защитил вас от того, чтобы стать матерью-зомби"
-		"es"	"Un administrador te ha protegido de ser zombi madre"
-		"de"	"Ein Admin hat dich davor geschützt, Mutterzombie zu werden"
-		"pt"	"Um administrador protegeu você de ser zumbi-mãe"
-		"chi"	"管理员已保护你不会成为母体僵尸"
 	}
 	"protected"
 	{

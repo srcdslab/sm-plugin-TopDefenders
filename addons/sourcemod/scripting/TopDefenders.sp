@@ -312,33 +312,37 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 
 	int count = ProcessTargetString(pattern, client, targets, MAXPLAYERS, COMMAND_FILTER_CONNECTED | COMMAND_FILTER_NO_IMMUNITY, sTargetName, sizeof(sTargetName), ml);
 
-	SetGlobalTransTarget(client);
-	if (count <= 0)
+	// Any team, so a spectator keeps the immunity when they join
+	int applied = 0;
+	for (int i = 0; i < count; i++)
 	{
-		if (IsValidClient(client))
+		if (IsValidClient(targets[i], false, false))
 		{
-			char sBad[64], sNo[64];
-			FormatEx(sBad, sizeof(sBad), "%t", "Bad Target");
-			FormatEx(sNo, sizeof(sNo), "%t", "No Target");
-			CPrintToChat(client,"{green}%t {default}%s", "Chat Prefix", (count < 0) ? sBad : sNo);
-			return;
+			g_bPlayerImmune[targets[i]] = immunity;
+			applied++;
 		}
 	}
 
-	for (int i = 0; i < count; i++)
+	SetGlobalTransTarget(client);
+	if (applied == 0)
 	{
-		if (IsValidClient(client))
-			g_bPlayerImmune[targets[i]] = immunity;
+		char sBad[64], sNo[64];
+		FormatEx(sBad, sizeof(sBad), "%t", "Bad Target");
+		FormatEx(sNo, sizeof(sNo), "%t", "No Target");
+		CReplyToCommand(client, "{green}%t {default}%s", "Chat Prefix", (count < 0) ? sBad : sNo);
+		return;
 	}
 
 	if (bNotify)
 	{
-		char sEnabled[64], sDisabled[64];
-		FormatEx(sEnabled, sizeof(sEnabled), "%t", "Enabled");
-		FormatEx(sDisabled, sizeof(sDisabled), "%t", "Disabled");
+		// The prefix is not formatted per recipient, so it uses the admin's language
+		char sPrefix[64];
+		FormatEx(sPrefix, sizeof(sPrefix), "{green}%T{olive} ", "ShowActivity Prefix", client);
 
-		// ShowActivity doesnt support prefix translated..
-		CShowActivity2(client, "{green}[TopDefenders]{olive} ", "%t", "Immunity Status", immunity ? sEnabled : sDisabled, sTargetName);
+		if (ml)
+			CShowActivity2(client, sPrefix, "%t", immunity ? "Immunity Status Enabled" : "Immunity Status Disabled", sTargetName);
+		else
+			CShowActivity2(client, sPrefix, "%t", immunity ? "Immunity Status Enabled" : "Immunity Status Disabled", "_s", sTargetName);
 
 		if (count > 1)
 			LogAction(client, -1, "[TopDefenders] \"%L\" have %s mother zombie immunity on \"%s\"", client, immunity ? "Enabled" : "Disabled", sTargetName);
@@ -651,19 +655,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	if (!g_iSortedCount)
 		return;
 
-	char sBuffer[512], sMenuTitle[128];
-	if (!g_Plugin_KnifeMode)
-		Format(sMenuTitle, sizeof(sMenuTitle), "%t:", "Menu Title Defender");
-	else
-		Format(sMenuTitle, sizeof(sMenuTitle), "%t:", "Menu Title Knifer");
-
-	String_ToUpper(sMenuTitle, sBuffer, sizeof(sBuffer));
-
-	char sType[64];
-	if (g_cvDisplayType.IntValue != 1 || !g_Plugin_KnifeMode)
-		FormatEx(sType, sizeof(sType), "%t", "DMG");
-	else
-		FormatEx(sType, sizeof(sType), "%t", "KILLS");
+	char sBuffer[512], sType[64];
 
 	// Always 3 winners by default
 	int numWinners = 3;
@@ -678,8 +670,6 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	{
 		if (g_iSortedList[i][0] > 0)
 		{
-			Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %s", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], sType);
-
 			if (!g_Plugin_KnifeMode)
 			{
 				switch (i)
@@ -723,6 +713,19 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	{
 		if (IsClientInGame(i))
 		{
+			// Build the list in this client's language
+			if (g_cvDisplayType.IntValue != 1 || !g_Plugin_KnifeMode)
+				FormatEx(sType, sizeof(sType), "%T", "DMG", i);
+			else
+				FormatEx(sType, sizeof(sType), "%T", "KILLS", i);
+
+			FormatEx(sBuffer, sizeof(sBuffer), "%T", g_Plugin_KnifeMode ? "Round End Title Knifer" : "Round End Title Defender", i);
+			for (int j = 0; j < numWinners; j++)
+			{
+				if (g_iSortedList[j][0] > 0)
+					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %s", sBuffer, j + 1, g_iSortedList[j][0], g_iSortedList[j][1], sType);
+			}
+
 			bool bPersonal = false;
 			int iDisplayRank = GetClientRank(i);
 			int rank = iDisplayRank - 1;
