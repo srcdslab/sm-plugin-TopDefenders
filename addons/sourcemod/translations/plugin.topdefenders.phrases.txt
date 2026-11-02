@@ -3,124 +3,304 @@
 	"Chat Prefix"
 	{
 		"en"    "[TopDefenders]"
+		"fr"    "[TopDefenders]"
+		"ru"    "[TopDefenders]"
+		"es"    "[TopDefenders]"
+		"de"    "[TopDefenders]"
+		"pt"    "[TopDefenders]"
+		"chi"   "[TopDefenders]"
 	}
 	"ShowActivity Prefix"
 	{
 		"en"    "[TopDefenders]"
+		"fr"    "[TopDefenders]"
+		"ru"    "[TopDefenders]"
+		"es"    "[TopDefenders]"
+		"de"    "[TopDefenders]"
+		"pt"    "[TopDefenders]"
+		"chi"   "[TopDefenders]"
 	}
 	"Menu Title Defender"
 	{
 		"en"    "Top Defenders"
+		"fr"    "Top défenseurs"
+		"ru"    "Топ защитников"
+		"es"    "Top defensores"
+		"de"    "Top-Verteidiger"
+		"pt"    "Top defensores"
+		"chi"   "防守者排行"
 	}
 	"Menu Title Knifer"
 	{
 		"en"    "Top Knifers"
+		"fr"    "Top knifeurs"
+		"ru"    "Топ ножевиков"
+		"es"    "Top acuchilladores"
+		"de"    "Top-Messerkämpfer"
+		"pt"    "Top faqueiros"
+		"chi"   "刀手排行"
 	}
 	"Cookie Menu Title"
 	{
 		"en"    "Top Defenders Settings"
+		"fr"    "Paramètres Top défenseurs"
+		"ru"    "Настройки Топ защитников"
+		"es"    "Configuración de Top defensores"
+		"de"    "Top-Verteidiger-Einstellungen"
+		"pt"    "Configurações do Top defensores"
+		"chi"   "防守者排行设置"
 	}
 	"Enabled"
 	{
 		"en"    "Enabled"
+		"fr"    "Activé"
+		"ru"    "Включено"
+		"es"    "Activado"
+		"de"    "Aktiviert"
+		"pt"    "Ativado"
+		"chi"   "已启用"
 	}
 	"Disabled"
 	{
 		"en"    "Disabled"
+		"fr"    "Désactivé"
+		"ru"    "Выключено"
+		"es"    "Desactivado"
+		"de"    "Deaktiviert"
+		"pt"    "Desativado"
+		"chi"   "已禁用"
 	}
 	"DMG"
 	{
 		"en"    "DMG"
+		"fr"    "DÉGÂTS"
+		"ru"    "УРОН"
+		"es"    "DAÑO"
+		"de"    "SCHADEN"
+		"pt"    "DANO"
+		"chi"   "伤害"
 	}
 	"KILLS"
 	{
 		"en"    "KILLS"
+		"fr"    "KILLS"
+		"ru"    "УБИЙСТВ"
+		"es"    "BAJAS"
+		"de"    "KILLS"
+		"pt"    "ABATES"
+		"chi"   "击杀"
 	}
 	"Crown"
 	{
 		"en"    "Crown"
+		"fr"    "Couronne"
+		"ru"    "Корона"
+		"es"    "Corona"
+		"de"    "Krone"
+		"pt"    "Coroa"
+		"chi"   "皇冠"
 	}
 	"Crown Enabled"
 	{
 		"en"    "You will now spawn with a crown again"
+		"fr"    "Vous apparaîtrez de nouveau avec une couronne"
+		"ru"    "Вы снова будете появляться с короной"
+		"es"    "Volverás a aparecer con una corona"
+		"de"    "Du spawnst jetzt wieder mit einer Krone"
+		"pt"    "Agora você vai nascer com uma coroa de novo"
+		"chi"   "你出生时将再次佩戴皇冠"
 	}
 	"Crown Disabled"
 	{
 		"en"    "You will no longer spawn with a crown"
+		"fr"    "Vous n'apparaîtrez plus avec une couronne"
+		"ru"    "Вы больше не будете появляться с короной"
+		"es"    "Ya no aparecerás con una corona"
+		"de"    "Du spawnst nicht mehr mit einer Krone"
+		"pt"    "Você não vai mais nascer com uma coroa"
+		"chi"   "你出生时将不再佩戴皇冠"
 	}
 	"Dialog"
 	{
 		"en"    "Dialog"
+		"fr"    "Dialogue"
+		"ru"    "Диалог"
+		"es"    "Diálogo"
+		"de"    "Dialog"
+		"pt"    "Diálogo"
+		"chi"   "对话框"
 	}
 	"Dialog Enabled"
 	{
 		"en"    "You will now see the dialog again"
+		"fr"    "Vous verrez de nouveau le dialogue"
+		"ru"    "Вы снова будете видеть диалог"
+		"es"    "Volverás a ver el diálogo"
+		"de"    "Du siehst den Dialog jetzt wieder"
+		"pt"    "Agora você verá o diálogo novamente"
+		"chi"   "你将再次看到对话框"
 	}
 	"Dialog Disabled"
 	{
 		"en"    "You will no longer see the dialog"
+		"fr"    "Vous ne verrez plus le dialogue"
+		"ru"    "Вы больше не будете видеть диалог"
+		"es"    "Ya no verás el diálogo"
+		"de"    "Du siehst den Dialog nicht mehr"
+		"pt"    "Você não verá mais o diálogo"
+		"chi"   "你将不再看到对话框"
 	}
 	"Immunity"
 	{
 		"en"    "Immunity"
+		"fr"    "Immunité"
+		"ru"    "Иммунитет"
+		"es"    "Inmunidad"
+		"de"    "Immunität"
+		"pt"    "Imunidade"
+		"chi"   "免疫"
 	}
 	"Immunity Status"
 	{
 		"#format" "{1:s},{2:s}"
-		"en"    "{default}have {lightgreen}{1} {default}mother zombie immunity on {olive}{2}"
+		"en"    "{default}has {lightgreen}{1} {default}mother zombie immunity on {olive}{2}"
+		"fr"    "{default}a modifié l'immunité zombie mère de {olive}{2}{default} : {lightgreen}{1}"
+		"ru"    "{default}изменил иммунитет к матери-зомби для {olive}{2}{default}: {lightgreen}{1}"
+		"es"    "{default}cambió la inmunidad a zombi madre de {olive}{2}{default}: {lightgreen}{1}"
+		"de"    "{default}hat die Mutterzombie-Immunität von {olive}{2}{default} geändert: {lightgreen}{1}"
+		"pt"    "{default}alterou a imunidade a zumbi-mãe de {olive}{2}{default}: {lightgreen}{1}"
+		"chi"   "{default}修改了 {olive}{2}{default} 的母体僵尸免疫：{lightgreen}{1}"
 	}
 	"Immunity Enabled"
 	{
 		"en"    "You will now be protected from being mother zombie"
+		"fr"    "Vous êtes maintenant protégé contre le fait d'être zombie mère"
+		"ru"    "Теперь вы защищены от того, чтобы стать матерью-зомби"
+		"es"    "Ahora estás protegido de ser zombi madre"
+		"de"    "Du bist jetzt davor geschützt, Mutterzombie zu werden"
+		"pt"    "Agora você está protegido de ser zumbi-mãe"
+		"chi"   "你现在不会成为母体僵尸"
 	}
 	"Immunity Disabled"
 	{
 		"en"    "You will no longer be protected from being mother zombie"
+		"fr"    "Vous n'êtes plus protégé contre le fait d'être zombie mère"
+		"ru"    "Вы больше не защищены от того, чтобы стать матерью-зомби"
+		"es"    "Ya no estarás protegido de ser zombi madre"
+		"de"    "Du bist nicht mehr davor geschützt, Mutterzombie zu werden"
+		"pt"    "Você não está mais protegido de ser zumbi-mãe"
+		"chi"   "你不再受保护，可能会成为母体僵尸"
 	}
 	"Admin Protection"
 	{
 		"en"	"An administrator has protected you from being Mother Zombie"
+		"fr"	"Un administrateur vous a protégé contre le fait d'être zombie mère"
+		"ru"	"Администратор защитил вас от того, чтобы стать матерью-зомби"
+		"es"	"Un administrador te ha protegido de ser zombi madre"
+		"de"	"Ein Admin hat dich davor geschützt, Mutterzombie zu werden"
+		"pt"	"Um administrador protegeu você de ser zumbi-mãe"
+		"chi"	"管理员已保护你不会成为母体僵尸"
 	}
 	"protected"
 	{
 		"en"    "You have been protected from being Mother Zombie."
+		"fr"    "Vous avez été protégé contre le fait d'être zombie mère."
+		"ru"    "Вы были защищены от того, чтобы стать матерью-зомби."
+		"es"    "Has sido protegido de ser zombi madre."
+		"de"    "Du wurdest davor geschützt, Mutterzombie zu werden."
+		"pt"    "Você está protegido de ser zumbi-mãe."
+		"chi"   "你不会成为母体僵尸。"
 	}
 	"The top"
 	{
 		"#format" "{1:s}"
 		"en"    "Since you were the Top {1} last round!"
+		"fr"    "Car vous étiez le Top {1} au round précédent !"
+		"ru"    "Ведь вы — Топ {1} прошлого раунда!"
+		"es"    "¡Porque fuiste el Top {1} la ronda pasada!"
+		"de"    "Weil du in der letzten Runde der Top-{1} warst!"
+		"pt"    "Porque você foi o Top {1} na rodada passada!"
+		"chi"   "因为你是上一回合的顶尖{1}！"
 	}
 	"Knifer"
 	{
 		"en"	"Knifer"
+		"fr"	"Knifeur"
+		"ru"	"Ножевик"
+		"es"	"Acuchillador"
+		"de"	"Messerkämpfer"
+		"pt"	"Faqueiro"
+		"chi"	"刀手"
 	}
 	"Defender"
 	{
 		"en"	"Defender"
+		"fr"	"Défenseur"
+		"ru"	"Защитник"
+		"es"	"Defensor"
+		"de"	"Verteidiger"
+		"pt"	"Defensor"
+		"chi"	"防守者"
 	}
 	"Not ranked"
 	{
 		"en"	"Not ranked yet"
+		"fr"	"Pas encore classé"
+		"ru"	"Пока нет в рейтинге"
+		"es"	"Aún sin clasificar"
+		"de"	"Noch nicht platziert"
+		"pt"	"Ainda não classificado"
+		"chi"	"尚未上榜"
 	}
 	"TopDefender Position"
 	{
 		"#format" "{1:N},{2:d},{3:d},{4:s}"
 		"en"	"{1} is currently Top Defender #{2} with {3} {4}"
+		"fr"	"{1} est actuellement Top défenseur #{2} avec {3} {4}"
+		"ru"	"{1} сейчас #{2} в топе защитников: {3} {4}"
+		"es"	"{1} es actualmente el Top defensor #{2} con {3} {4}"
+		"de"	"{1} ist derzeit Top-Verteidiger #{2} mit {3} {4}"
+		"pt"	"{1} é atualmente o Top defensor #{2} com {3} {4}"
+		"chi"	"{1} 目前是第 {2} 名防守者，{3} {4}"
 	}
 	"Immunity Usage"
 	{
 		"en"	"Usage: sm_immunity <target> <0|1>"
+		"fr"	"Utilisation : sm_immunity <cible> <0|1>"
+		"ru"	"Использование: sm_immunity <цель> <0|1>"
+		"es"	"Uso: sm_immunity <objetivo> <0|1>"
+		"de"	"Verwendung: sm_immunity <Ziel> <0|1>"
+		"pt"	"Uso: sm_immunity <alvo> <0|1>"
+		"chi"	"用法：sm_immunity <目标> <0|1>"
 	}
 	"Cant Immunity All"
 	{
 		"en"	"Cannot perform an immunity on all players!"
+		"fr"	"Impossible d'appliquer l'immunité à tous les joueurs !"
+		"ru"	"Нельзя выдать иммунитет всем игрокам!"
+		"es"	"¡No se puede aplicar inmunidad a todos los jugadores!"
+		"de"	"Immunität kann nicht auf alle Spieler angewendet werden!"
+		"pt"	"Não é possível aplicar imunidade a todos os jogadores!"
+		"chi"	"无法对所有玩家设置免疫！"
 	}
 	"Bad Target"
 	{
 		"en"	"Invalid target"
+		"fr"	"Cible invalide"
+		"ru"	"Неверная цель"
+		"es"	"Objetivo no válido"
+		"de"	"Ungültiges Ziel"
+		"pt"	"Alvo inválido"
+		"chi"	"无效目标"
 	}
 	"No Target"
 	{
 		"en"	"No target"
+		"fr"	"Aucune cible"
+		"ru"	"Нет цели"
+		"es"	"Sin objetivo"
+		"de"	"Kein Ziel"
+		"pt"	"Nenhum alvo"
+		"chi"	"没有目标"
 	}
 }
