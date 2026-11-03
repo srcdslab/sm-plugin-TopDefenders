@@ -333,12 +333,14 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 
 	if (bNotify)
 	{
-		char sEnabled[64], sDisabled[64];
-		FormatEx(sEnabled, sizeof(sEnabled), "%t", "Enabled");
-		FormatEx(sDisabled, sizeof(sDisabled), "%t", "Disabled");
+		// The prefix is not formatted per recipient, so it uses the admin's language
+		char sPrefix[64];
+		FormatEx(sPrefix, sizeof(sPrefix), "{green}%T{olive} ", "ShowActivity Prefix", client);
 
-		// ShowActivity doesnt support prefix translated..
-		CShowActivity2(client, "{green}[TopDefenders]{olive} ", "%t", "Immunity Status", immunity ? sEnabled : sDisabled, sTargetName);
+		if (ml)
+			CShowActivity2(client, sPrefix, "%t", immunity ? "Immunity Status Enabled" : "Immunity Status Disabled", sTargetName);
+		else
+			CShowActivity2(client, sPrefix, "%t", immunity ? "Immunity Status Enabled" : "Immunity Status Disabled", "_s", sTargetName);
 
 		if (count > 1)
 			LogAction(client, -1, "[TopDefenders] \"%L\" have %s mother zombie immunity on \"%s\"", client, immunity ? "Enabled" : "Disabled", sTargetName);
@@ -651,19 +653,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	if (!g_iSortedCount)
 		return;
 
-	char sBuffer[512], sMenuTitle[128];
-	if (!g_Plugin_KnifeMode)
-		Format(sMenuTitle, sizeof(sMenuTitle), "%t:", "Menu Title Defender");
-	else
-		Format(sMenuTitle, sizeof(sMenuTitle), "%t:", "Menu Title Knifer");
-
-	String_ToUpper(sMenuTitle, sBuffer, sizeof(sBuffer));
-
-	char sType[64];
-	if (g_cvDisplayType.IntValue != 1 || !g_Plugin_KnifeMode)
-		FormatEx(sType, sizeof(sType), "%t", "DMG");
-	else
-		FormatEx(sType, sizeof(sType), "%t", "KILLS");
+	char sBuffer[512], sType[64];
 
 	// Always 3 winners by default
 	int numWinners = 3;
@@ -678,8 +668,6 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	{
 		if (g_iSortedList[i][0] > 0)
 		{
-			Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %s", sBuffer, i + 1, g_iSortedList[i][0], g_iSortedList[i][1], sType);
-
 			if (!g_Plugin_KnifeMode)
 			{
 				switch (i)
@@ -723,6 +711,19 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 	{
 		if (IsClientInGame(i))
 		{
+			// Build the list in this client's language
+			if (g_cvDisplayType.IntValue != 1 || !g_Plugin_KnifeMode)
+				FormatEx(sType, sizeof(sType), "%T", "DMG", i);
+			else
+				FormatEx(sType, sizeof(sType), "%T", "KILLS", i);
+
+			FormatEx(sBuffer, sizeof(sBuffer), "%T", g_Plugin_KnifeMode ? "Round End Title Knifer" : "Round End Title Defender", i);
+			for (int j = 0; j < numWinners; j++)
+			{
+				if (g_iSortedList[j][0] > 0)
+					Format(sBuffer, sizeof(sBuffer), "%s\n%d. %N - %d %s", sBuffer, j + 1, g_iSortedList[j][0], g_iSortedList[j][1], sType);
+			}
+
 			bool bPersonal = false;
 			int iDisplayRank = GetClientRank(i);
 			int rank = iDisplayRank - 1;
