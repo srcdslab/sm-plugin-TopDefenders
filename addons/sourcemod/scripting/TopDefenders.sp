@@ -312,25 +312,23 @@ public void GiveImmunity(int client, char pattern[96], bool immunity, bool bNoti
 
 	int count = ProcessTargetString(pattern, client, targets, MAXPLAYERS, COMMAND_FILTER_CONNECTED | COMMAND_FILTER_NO_IMMUNITY, sTargetName, sizeof(sTargetName), ml);
 
-	// Any team, so a spectator keeps the immunity when they join
-	int applied = 0;
-	for (int i = 0; i < count; i++)
+	SetGlobalTransTarget(client);
+	if (count <= 0)
 	{
-		if (IsValidClient(targets[i], false, false))
+		if (IsValidClient(client))
 		{
-			g_bPlayerImmune[targets[i]] = immunity;
-			applied++;
+			char sBad[64], sNo[64];
+			FormatEx(sBad, sizeof(sBad), "%t", "Bad Target");
+			FormatEx(sNo, sizeof(sNo), "%t", "No Target");
+			CPrintToChat(client,"{green}%t {default}%s", "Chat Prefix", (count < 0) ? sBad : sNo);
+			return;
 		}
 	}
 
-	SetGlobalTransTarget(client);
-	if (applied == 0)
+	for (int i = 0; i < count; i++)
 	{
-		char sBad[64], sNo[64];
-		FormatEx(sBad, sizeof(sBad), "%t", "Bad Target");
-		FormatEx(sNo, sizeof(sNo), "%t", "No Target");
-		CReplyToCommand(client, "{green}%t {default}%s", "Chat Prefix", (count < 0) ? sBad : sNo);
-		return;
+		if (IsValidClient(client))
+			g_bPlayerImmune[targets[i]] = immunity;
 	}
 
 	if (bNotify)
