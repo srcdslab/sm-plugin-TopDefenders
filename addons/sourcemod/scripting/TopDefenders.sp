@@ -595,19 +595,18 @@ public Action UpdateClientUI(int client)
 	int iDisplayRank = GetClientRank(client);
 	int rank = iDisplayRank - 1;
 
+	// Not ranked yet: no position on the scoreboard and no dialog, whatever the scoreboard type
+	if (rank >= g_iSortedCount)
+	{
+		if (g_cvScoreboardType.IntValue == 1)
+			SetEntProp(client, Prop_Data, "m_iDeaths", 0);
+
+		return Plugin_Continue;
+	}
+
 	// Scoreboard
 	if (g_cvScoreboardType.IntValue == 1)
-	{
-		if (rank >= g_iSortedCount)
-		{
-			SetEntProp(client, Prop_Data, "m_iDeaths", 0);
-			return Plugin_Continue;
-		}
-		else
-		{
-			SetEntProp(client, Prop_Data, "m_iDeaths", iDisplayRank);
-		}
-	}
+		SetEntProp(client, Prop_Data, "m_iDeaths", iDisplayRank);
 
 	if (g_iDialogLevel <= 0)
 		return Plugin_Continue;
