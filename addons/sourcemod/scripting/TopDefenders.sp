@@ -55,6 +55,16 @@ int g_iPlayerDamageEvent[MAXPLAYERS + 1];
 
 int g_iSortedList[MAXPLAYERS + 1][2];
 int g_iSortedCount = 0;
+
+// Position of each client in g_iSortedList (-1 if not in it), filled with the list:
+// GetClientRank() runs for every client on every UI update
+int g_iClientRank[MAXPLAYERS + 1] = { -1, ... };
+
+// Spectators watching each player in first or third person, as linked lists
+// (0 ends a list), built once per UI update instead of once per player in SendDialog()
+int g_iSpecHead[MAXPLAYERS + 1];
+int g_iSpecNext[MAXPLAYERS + 1];
+
 int g_iFramesToSkip;
 
 bool g_bPlayerImmune[MAXPLAYERS + 1];
@@ -579,6 +589,12 @@ public Action UpdateDefendersList(Handle timer)
 
 	SortCustom2D(g_iSortedList, g_iSortedCount, SortDefendersList);
 
+	for (int client = 1; client <= MaxClients; client++)
+		g_iClientRank[client] = -1;
+
+	for (int rank = 0; rank < g_iSortedCount; rank++)
+		g_iClientRank[g_iSortedList[rank][0]] = rank;
+
 	g_iDialogLevel--;
 
 	if (timer == null)
@@ -1082,18 +1098,10 @@ void SendDialog(int client, const char[] display, const int level, const int tim
 		CreateDialog(client, kv, DialogType_Msg);
 	}
 
-	for (int spec = 1; spec <= MaxClients; spec++)
+	// Spectators of this client, see BuildSpectatorLists()
+	for (int spec = g_iSpecHead[client]; spec != 0; spec = g_iSpecNext[spec])
 	{
-		if (!IsClientInGame(spec) || !IsClientObserver(spec) || g_bHideDialog[spec])
-			continue;
-
-		int specMode   = GetClientSpectatorMode(spec);
-		int specTarget = GetClientSpectatorTarget(spec);
-
-		if ((specMode == SPECMODE_FIRSTPERSON || specMode == SPECMODE_THIRDPERSON) && specTarget == client)
-		{
-			CreateDialog(spec, kv, DialogType_Msg);
-		}
+		CreateDialog(spec, kv, DialogType_Msg);
 	}
 
 	delete kv;
@@ -1101,14 +1109,40 @@ void SendDialog(int client, const char[] display, const int level, const int tim
 
 stock int GetClientRank(int client)
 {
-	int rank = 0;
-	while (rank < g_iSortedCount)
-	{
-		if (g_iSortedList[rank][0] == client)
-			break;
-		rank++;
-	}
+	// Not in the list: g_iSortedCount + 1, like the search it replaces
+	int rank = g_iClientRank[client];
+	if (rank == -1)
+		rank = g_iSortedCount;
+
 	return rank + 1;
+}
+
+// Links each spectator watching a player in first or third person (and not hiding
+// the dialog) to that player, in ascending client order.
+void BuildSpectatorLists()
+{
+	for (int client = 1; client <= MaxClients; client++)
+		g_iSpecHead[client] = 0;
+
+	// Walk down so each list ends up in ascending client order
+	for (int spec = MaxClients; spec >= 1; spec--)
+	{
+		g_iSpecNext[spec] = 0;
+
+		if (!IsClientInGame(spec) || !IsClientObserver(spec) || g_bHideDialog[spec])
+			continue;
+
+		int specMode = GetClientSpectatorMode(spec);
+		if (specMode != SPECMODE_FIRSTPERSON && specMode != SPECMODE_THIRDPERSON)
+			continue;
+
+		int specTarget = GetClientSpectatorTarget(spec);
+		if (specTarget < 1 || specTarget > MaxClients)
+			continue;
+
+		g_iSpecNext[spec] = g_iSpecHead[specTarget];
+		g_iSpecHead[specTarget] = spec;
+	}
 }
 
 public void GetConVars()
@@ -1146,6 +1180,10 @@ public void OnGameFrame()
 
 	if (iFrame % g_iFramesToSkip != 0)
 		return;
+
+	// Only needed when UpdateClientUI() sends dialogs
+	if (g_iDialogLevel > 0)
+		BuildSpectatorLists();
 
 	for (int client = 1; client <= MaxClients; client++)
 	{
