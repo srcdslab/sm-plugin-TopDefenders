@@ -714,7 +714,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 		if (IsClientInGame(i))
 		{
 			// Build the list in this client's language
-			if (g_cvDisplayType.IntValue != 1 || !g_Plugin_KnifeMode)
+			if (g_cvDisplayType.IntValue == 0 && !g_Plugin_KnifeMode)
 				FormatEx(sType, sizeof(sType), "%T", "DMG", i);
 			else
 				FormatEx(sType, sizeof(sType), "%T", "KILLS", i);
