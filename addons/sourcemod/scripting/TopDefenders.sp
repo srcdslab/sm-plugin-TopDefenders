@@ -59,15 +59,12 @@ int g_iSortedCount = 0;
 // Position of each client in g_iSortedList (-1 if not in it), filled with the list:
 // GetClientRank() runs for every client on every UI update
 int g_iClientRank[MAXPLAYERS + 1] = { -1, ... };
-
-// Spectators watching each player in first or third person, as linked lists
-// (0 ends a list), built once per UI update instead of once per player in SendDialog()
-int g_iSpecHead[MAXPLAYERS + 1];
-int g_iSpecNext[MAXPLAYERS + 1];
-
 int g_iFramesToSkip;
 
 bool g_bPlayerImmune[MAXPLAYERS + 1];
+
+int g_iSpectatorTarget[MAXPLAYERS + 1];
+bool g_bSpectatorTargetsCached = false;
 
 Handle g_hHudSync = null;
 Handle g_hUpdateTimer = null;
@@ -608,19 +605,18 @@ public Action UpdateClientUI(int client)
 	int iDisplayRank = GetClientRank(client);
 	int rank = iDisplayRank - 1;
 
+	// Not ranked yet: no position on the scoreboard and no dialog, whatever the scoreboard type
+	if (rank >= g_iSortedCount)
+	{
+		if (g_cvScoreboardType.IntValue == 1)
+			SetEntProp(client, Prop_Data, "m_iDeaths", 0);
+
+		return Plugin_Continue;
+	}
+
 	// Scoreboard
 	if (g_cvScoreboardType.IntValue == 1)
-	{
-		if (rank >= g_iSortedCount)
-		{
-			SetEntProp(client, Prop_Data, "m_iDeaths", 0);
-			return Plugin_Continue;
-		}
-		else
-		{
-			SetEntProp(client, Prop_Data, "m_iDeaths", iDisplayRank);
-		}
-	}
+		SetEntProp(client, Prop_Data, "m_iDeaths", iDisplayRank);
 
 	if (g_iDialogLevel <= 0)
 		return Plugin_Continue;
@@ -730,7 +726,7 @@ public void OnRoundEnding(Event hEvent, const char[] sEvent, bool bDontBroadcast
 		if (IsClientInGame(i))
 		{
 			// Build the list in this client's language
-			if (g_cvDisplayType.IntValue != 1 || !g_Plugin_KnifeMode)
+			if (g_cvDisplayType.IntValue == 0 && !g_Plugin_KnifeMode)
 				FormatEx(sType, sizeof(sType), "%T", "DMG", i);
 			else
 				FormatEx(sType, sizeof(sType), "%T", "KILLS", i);
@@ -1098,13 +1094,37 @@ void SendDialog(int client, const char[] display, const int level, const int tim
 		CreateDialog(client, kv, DialogType_Msg);
 	}
 
-	// Spectators of this client, see BuildSpectatorLists()
-	for (int spec = g_iSpecHead[client]; spec != 0; spec = g_iSpecNext[spec])
+	// Spectators don't change during the frame, look them up once instead of once per client
+	if (!g_bSpectatorTargetsCached)
+		CacheSpectatorTargets();
+
+	for (int spec = 1; spec <= MaxClients; spec++)
 	{
-		CreateDialog(spec, kv, DialogType_Msg);
+		if (g_iSpectatorTarget[spec] == client)
+		{
+			CreateDialog(spec, kv, DialogType_Msg);
+		}
 	}
 
 	delete kv;
+}
+
+void CacheSpectatorTargets()
+{
+	for (int spec = 1; spec <= MaxClients; spec++)
+	{
+		g_iSpectatorTarget[spec] = 0;
+
+		if (!IsClientInGame(spec) || !IsClientObserver(spec) || g_bHideDialog[spec])
+			continue;
+
+		int specMode = GetClientSpectatorMode(spec);
+
+		if (specMode == SPECMODE_FIRSTPERSON || specMode == SPECMODE_THIRDPERSON)
+			g_iSpectatorTarget[spec] = GetClientSpectatorTarget(spec);
+	}
+
+	g_bSpectatorTargetsCached = true;
 }
 
 stock int GetClientRank(int client)
@@ -1115,34 +1135,6 @@ stock int GetClientRank(int client)
 		rank = g_iSortedCount;
 
 	return rank + 1;
-}
-
-// Links each spectator watching a player in first or third person (and not hiding
-// the dialog) to that player, in ascending client order.
-void BuildSpectatorLists()
-{
-	for (int client = 1; client <= MaxClients; client++)
-		g_iSpecHead[client] = 0;
-
-	// Walk down so each list ends up in ascending client order
-	for (int spec = MaxClients; spec >= 1; spec--)
-	{
-		g_iSpecNext[spec] = 0;
-
-		if (!IsClientInGame(spec) || !IsClientObserver(spec) || g_bHideDialog[spec])
-			continue;
-
-		int specMode = GetClientSpectatorMode(spec);
-		if (specMode != SPECMODE_FIRSTPERSON && specMode != SPECMODE_THIRDPERSON)
-			continue;
-
-		int specTarget = GetClientSpectatorTarget(spec);
-		if (specTarget < 1 || specTarget > MaxClients)
-			continue;
-
-		g_iSpecNext[spec] = g_iSpecHead[specTarget];
-		g_iSpecHead[specTarget] = spec;
-	}
 }
 
 public void GetConVars()
@@ -1181,9 +1173,8 @@ public void OnGameFrame()
 	if (iFrame % g_iFramesToSkip != 0)
 		return;
 
-	// Only needed when UpdateClientUI() sends dialogs
-	if (g_iDialogLevel > 0)
-		BuildSpectatorLists();
+	// Filled on the first dialog sent this frame
+	g_bSpectatorTargetsCached = false;
 
 	for (int client = 1; client <= MaxClients; client++)
 	{
@@ -1226,7 +1217,12 @@ public int Native_GetClientRank(Handle plugin, int numParams)
 	if (!client || !IsClientInGame(client))
 		return -1;
 
-	return GetClientRank(client);
+	// GetClientRank() returns g_iSortedCount + 1 for a client who is not in the list yet
+	int rank = GetClientRank(client);
+	if (rank > g_iSortedCount)
+		return -1;
+
+	return rank;
 }
 
 #if defined _KnifeMode_Included
