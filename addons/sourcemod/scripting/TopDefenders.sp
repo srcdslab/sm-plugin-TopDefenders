@@ -55,6 +55,10 @@ int g_iPlayerDamageEvent[MAXPLAYERS + 1];
 
 int g_iSortedList[MAXPLAYERS + 1][2];
 int g_iSortedCount = 0;
+
+// Position of each client in g_iSortedList (-1 if not in it), filled with the list:
+// GetClientRank() runs for every client on every UI update
+int g_iClientRank[MAXPLAYERS + 1] = { -1, ... };
 int g_iFramesToSkip;
 
 bool g_bPlayerImmune[MAXPLAYERS + 1];
@@ -581,6 +585,12 @@ public Action UpdateDefendersList(Handle timer)
 	}
 
 	SortCustom2D(g_iSortedList, g_iSortedCount, SortDefendersList);
+
+	for (int client = 1; client <= MaxClients; client++)
+		g_iClientRank[client] = -1;
+
+	for (int rank = 0; rank < g_iSortedCount; rank++)
+		g_iClientRank[g_iSortedList[rank][0]] = rank;
 
 	g_iDialogLevel--;
 
@@ -1119,13 +1129,11 @@ void CacheSpectatorTargets()
 
 stock int GetClientRank(int client)
 {
-	int rank = 0;
-	while (rank < g_iSortedCount)
-	{
-		if (g_iSortedList[rank][0] == client)
-			break;
-		rank++;
-	}
+	// Not in the list: g_iSortedCount + 1, like the search it replaces
+	int rank = g_iClientRank[client];
+	if (rank == -1)
+		rank = g_iSortedCount;
+
 	return rank + 1;
 }
 
