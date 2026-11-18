@@ -10,7 +10,7 @@
 
 #define TopDefenders_V_MAJOR   "1"
 #define TopDefenders_V_MINOR   "13"
-#define TopDefenders_V_PATCH   "10"
+#define TopDefenders_V_PATCH   "11"
 
 #define TopDefenders_VERSION   TopDefenders_V_MAJOR..."."...TopDefenders_V_MINOR..."."...TopDefenders_V_PATCH
 
@@ -33,7 +33,7 @@ native int TopDefenders_IsTopDefender(int client);
  * Check if the given client is top defender
  *
  * @param client     Any valid client index.
- * @return           Returns -1 if the client is not ingame/ranked, otherwise it returns its top defender position.
+ * @return           Returns -1 if the client is not ingame or not ranked yet, otherwise its top defender position (1 = first).
  */
 native int TopDefenders_GetClientRank(int client);
 
