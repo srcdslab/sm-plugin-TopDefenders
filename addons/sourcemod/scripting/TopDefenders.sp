@@ -595,19 +595,18 @@ public Action UpdateClientUI(int client)
 	int iDisplayRank = GetClientRank(client);
 	int rank = iDisplayRank - 1;
 
+	// Not ranked yet: no position on the scoreboard and no dialog, whatever the scoreboard type
+	if (rank >= g_iSortedCount)
+	{
+		if (g_cvScoreboardType.IntValue == 1)
+			SetEntProp(client, Prop_Data, "m_iDeaths", 0);
+
+		return Plugin_Continue;
+	}
+
 	// Scoreboard
 	if (g_cvScoreboardType.IntValue == 1)
-	{
-		if (rank >= g_iSortedCount)
-		{
-			SetEntProp(client, Prop_Data, "m_iDeaths", 0);
-			return Plugin_Continue;
-		}
-		else
-		{
-			SetEntProp(client, Prop_Data, "m_iDeaths", iDisplayRank);
-		}
-	}
+		SetEntProp(client, Prop_Data, "m_iDeaths", iDisplayRank);
 
 	if (g_iDialogLevel <= 0)
 		return Plugin_Continue;
@@ -1210,7 +1209,12 @@ public int Native_GetClientRank(Handle plugin, int numParams)
 	if (!client || !IsClientInGame(client))
 		return -1;
 
-	return GetClientRank(client);
+	// GetClientRank() returns g_iSortedCount + 1 for a client who is not in the list yet
+	int rank = GetClientRank(client);
+	if (rank > g_iSortedCount)
+		return -1;
+
+	return rank;
 }
 
 #if defined _KnifeMode_Included
