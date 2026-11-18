@@ -1187,7 +1187,12 @@ public int Native_GetClientRank(Handle plugin, int numParams)
 	if (!client || !IsClientInGame(client))
 		return -1;
 
-	return GetClientRank(client);
+	// GetClientRank() returns g_iSortedCount + 1 for a client who is not in the list yet
+	int rank = GetClientRank(client);
+	if (rank > g_iSortedCount)
+		return -1;
+
+	return rank;
 }
 
 #if defined _KnifeMode_Included
