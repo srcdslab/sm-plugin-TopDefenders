@@ -9,6 +9,12 @@
 		"de"    "[TopDefenders]"
 		"pt"    "[TopDefenders]"
 		"chi"   "[TopDefenders]"
+		"pl"   "[TopDefenders]"
+		"tr"   "[TopDefenders]"
+		"it"   "[TopDefenders]"
+		"ua"   "[TopDefenders]"
+		"zho"   "[TopDefenders]"
+		"cze"   "[TopDefenders]"
 	}
 	"ShowActivity Prefix"
 	{
@@ -19,6 +25,12 @@
 		"de"    "[TopDefenders]"
 		"pt"    "[TopDefenders]"
 		"chi"   "[TopDefenders]"
+		"pl"   "[TopDefenders]"
+		"tr"   "[TopDefenders]"
+		"it"   "[TopDefenders]"
+		"ua"   "[TopDefenders]"
+		"zho"   "[TopDefenders]"
+		"cze"   "[TopDefenders]"
 	}
 	"Menu Title Defender"
 	{
@@ -29,6 +41,12 @@
 		"de"    "Top-Verteidiger"
 		"pt"    "Top defensores"
 		"chi"   "防守者排行"
+		"pl"   "Najlepsi obrońcy"
+		"tr"   "En iyi savunucular"
+		"it"   "Top difensori"
+		"ua"   "Топ захисників"
+		"zho"   "防守者排行"
+		"cze"   "Nejlepší obránci"
 	}
 	"Round End Title Defender"
 	{
@@ -39,6 +57,12 @@
 		"de"    "TOP-VERTEIDIGER:"
 		"pt"    "TOP DEFENSORES:"
 		"chi"   "防守者排行："
+		"pl"   "NAJLEPSI OBROŃCY:"
+		"tr"   "EN İYİ SAVUNUCULAR:"
+		"it"   "TOP DIFENSORI:"
+		"ua"   "ТОП ЗАХИСНИКІВ:"
+		"zho"   "防守者排行："
+		"cze"   "NEJLEPŠÍ OBRÁNCI:"
 	}
 	"Round End Title Knifer"
 	{
@@ -49,6 +73,12 @@
 		"de"    "TOP-MESSERKÄMPFER:"
 		"pt"    "TOP FAQUEIROS:"
 		"chi"   "刀手排行："
+		"pl"   "NAJLEPSI NOŻOWNICY:"
+		"tr"   "EN İYİ BIÇAKÇILAR:"
+		"it"   "TOP COLTELLATORI:"
+		"ua"   "ТОП НОЖІВНИКІВ:"
+		"zho"   "刀手排行："
+		"cze"   "NEJLEPŠÍ NOŽAŘI:"
 	}
 	"Cookie Menu Title"
 	{
@@ -59,6 +89,12 @@
 		"de"    "Top-Verteidiger-Einstellungen"
 		"pt"    "Configurações do Top defensores"
 		"chi"   "防守者排行设置"
+		"pl"   "Ustawienia najlepszych obrońców"
+		"tr"   "En iyi savunucular ayarları"
+		"it"   "Impostazioni Top difensori"
+		"ua"   "Налаштування Топу захисників"
+		"zho"   "防守者排行設定"
+		"cze"   "Nastavení nejlepších obránců"
 	}
 	"Enabled"
 	{
@@ -69,6 +105,12 @@
 		"de"    "Aktiviert"
 		"pt"    "Ativado"
 		"chi"   "已启用"
+		"pl"   "Włączone"
+		"tr"   "Etkin"
+		"it"   "Attivato"
+		"ua"   "Увімкнено"
+		"zho"   "已啟用"
+		"cze"   "Zapnuto"
 	}
 	"Disabled"
 	{
@@ -79,6 +121,12 @@
 		"de"    "Deaktiviert"
 		"pt"    "Desativado"
 		"chi"   "已禁用"
+		"pl"   "Wyłączone"
+		"tr"   "Devre dışı"
+		"it"   "Disattivato"
+		"ua"   "Вимкнено"
+		"zho"   "已停用"
+		"cze"   "Vypnuto"
 	}
 	"DMG"
 	{
@@ -89,6 +137,12 @@
 		"de"    "SCHADEN"
 		"pt"    "DANO"
 		"chi"   "伤害"
+		"pl"   "OBR."
+		"tr"   "HASAR"
+		"it"   "DANNI"
+		"ua"   "ШКОДА"
+		"zho"   "傷害"
+		"cze"   "ZRANĚNÍ"
 	}
 	"KILLS"
 	{
@@ -99,6 +153,12 @@
 		"de"    "KILLS"
 		"pt"    "ABATES"
 		"chi"   "击杀"
+		"pl"   "ZABÓJSTWA"
+		"tr"   "ÖLDÜRME"
+		"it"   "UCCISIONI"
+		"ua"   "ВБИВСТВ"
+		"zho"   "擊殺"
+		"cze"   "ZABITÍ"
 	}
 	"Crown"
 	{
@@ -109,6 +169,12 @@
 		"de"    "Krone"
 		"pt"    "Coroa"
 		"chi"   "皇冠"
+		"pl"   "Korona"
+		"tr"   "Taç"
+		"it"   "Corona"
+		"ua"   "Корона"
+		"zho"   "皇冠"
+		"cze"   "Koruna"
 	}
 	"Crown Enabled"
 	{
@@ -119,6 +185,12 @@
 		"de"    "Du spawnst jetzt wieder mit einer Krone"
 		"pt"    "Agora você vai nascer com uma coroa de novo"
 		"chi"   "你出生时将再次佩戴皇冠"
+		"pl"   "Znów będziesz pojawiać się z koroną"
+		"tr"   "Artık yine taçla doğacaksın"
+		"it"   "Tornerai a comparire con una corona"
+		"ua"   "Ви знову з'являтиметеся з короною"
+		"zho"   "你出生時將再次佩戴皇冠"
+		"cze"   "Znovu se budeš objevovat s korunou"
 	}
 	"Crown Disabled"
 	{
@@ -129,6 +201,12 @@
 		"de"    "Du spawnst nicht mehr mit einer Krone"
 		"pt"    "Você não vai mais nascer com uma coroa"
 		"chi"   "你出生时将不再佩戴皇冠"
+		"pl"   "Nie będziesz już pojawiać się z koroną"
+		"tr"   "Artık taçla doğmayacaksın"
+		"it"   "Non comparirai più con una corona"
+		"ua"   "Ви більше не з'являтиметеся з короною"
+		"zho"   "你出生時將不再佩戴皇冠"
+		"cze"   "Už se nebudeš objevovat s korunou"
 	}
 	"Dialog"
 	{
@@ -139,6 +217,12 @@
 		"de"    "Dialog"
 		"pt"    "Diálogo"
 		"chi"   "对话框"
+		"pl"   "Okno dialogowe"
+		"tr"   "Diyalog"
+		"it"   "Dialogo"
+		"ua"   "Діалог"
+		"zho"   "對話框"
+		"cze"   "Dialog"
 	}
 	"Dialog Enabled"
 	{
@@ -149,6 +233,12 @@
 		"de"    "Du siehst den Dialog jetzt wieder"
 		"pt"    "Agora você verá o diálogo novamente"
 		"chi"   "你将再次看到对话框"
+		"pl"   "Znów będziesz widzieć okno dialogowe"
+		"tr"   "Artık diyaloğu yine göreceksin"
+		"it"   "Vedrai di nuovo il dialogo"
+		"ua"   "Ви знову бачитимете діалог"
+		"zho"   "你將再次看到對話框"
+		"cze"   "Znovu uvidíš dialog"
 	}
 	"Dialog Disabled"
 	{
@@ -159,6 +249,12 @@
 		"de"    "Du siehst den Dialog nicht mehr"
 		"pt"    "Você não verá mais o diálogo"
 		"chi"   "你将不再看到对话框"
+		"pl"   "Nie będziesz już widzieć okna dialogowego"
+		"tr"   "Artık diyaloğu görmeyeceksin"
+		"it"   "Non vedrai più il dialogo"
+		"ua"   "Ви більше не бачитимете діалог"
+		"zho"   "你將不再看到對話框"
+		"cze"   "Už neuvidíš dialog"
 	}
 	"Immunity"
 	{
@@ -169,6 +265,12 @@
 		"de"    "Immunität"
 		"pt"    "Imunidade"
 		"chi"   "免疫"
+		"pl"   "Odporność"
+		"tr"   "Bağışıklık"
+		"it"   "Immunità"
+		"ua"   "Імунітет"
+		"zho"   "免疫"
+		"cze"   "Imunita"
 	}
 	"Immunity Status Enabled"
 	{
@@ -180,6 +282,12 @@
 		"de"    "{default}hat die Mutterzombie-Immunität für {olive}{1} {lightgreen}aktiviert"
 		"pt"    "{default}{lightgreen}ativou {default}a imunidade a zumbi-mãe para {olive}{1}"
 		"chi"   "{default}{lightgreen}开启了 {olive}{1}{default} 的母体僵尸免疫"
+		"pl"   "{default}{lightgreen}włączył(a) {default}odporność na matkę zombie dla {olive}{1}"
+		"tr"   "{default}, {olive}{1}{default} için anne zombi bağışıklığını {lightgreen}açtı"
+		"it"   "{default}ha {lightgreen}attivato {default}l'immunità da zombie madre per {olive}{1}"
+		"ua"   "{default}{lightgreen}увімкнув(ла) {default}імунітет до матері-зомбі для {olive}{1}"
+		"zho"   "{default}{lightgreen}開啟了 {olive}{1}{default} 的母體殭屍免疫"
+		"cze"   "{default}{lightgreen}zapnul(a) {default}imunitu proti matce zombie pro {olive}{1}"
 	}
 	"Immunity Status Disabled"
 	{
@@ -191,6 +299,12 @@
 		"de"    "{default}hat die Mutterzombie-Immunität für {olive}{1} {lightgreen}deaktiviert"
 		"pt"    "{default}{lightgreen}desativou {default}a imunidade a zumbi-mãe para {olive}{1}"
 		"chi"   "{default}{lightgreen}关闭了 {olive}{1}{default} 的母体僵尸免疫"
+		"pl"   "{default}{lightgreen}wyłączył(a) {default}odporność na matkę zombie dla {olive}{1}"
+		"tr"   "{default}, {olive}{1}{default} için anne zombi bağışıklığını {lightgreen}kapattı"
+		"it"   "{default}ha {lightgreen}disattivato {default}l'immunità da zombie madre per {olive}{1}"
+		"ua"   "{default}{lightgreen}вимкнув(ла) {default}імунітет до матері-зомбі для {olive}{1}"
+		"zho"   "{default}{lightgreen}關閉了 {olive}{1}{default} 的母體殭屍免疫"
+		"cze"   "{default}{lightgreen}vypnul(a) {default}imunitu proti matce zombie pro {olive}{1}"
 	}
 	"Immunity Enabled"
 	{
@@ -201,6 +315,12 @@
 		"de"    "Du bist jetzt davor geschützt, Mutterzombie zu werden"
 		"pt"    "Agora você está protegido de ser zumbi-mãe"
 		"chi"   "你现在不会成为母体僵尸"
+		"pl"   "Jesteś teraz chroniony przed zostaniem matką zombie"
+		"tr"   "Artık anne zombi olmaktan korunuyorsun"
+		"it"   "Ora sei protetto dal diventare zombie madre"
+		"ua"   "Тепер ви захищені від того, щоб стати матір'ю-зомбі"
+		"zho"   "你現在不會成為母體殭屍"
+		"cze"   "Nyní jsi chráněn před tím, aby ses stal matkou zombie"
 	}
 	"Immunity Disabled"
 	{
@@ -211,6 +331,12 @@
 		"de"    "Du bist nicht mehr davor geschützt, Mutterzombie zu werden"
 		"pt"    "Você não está mais protegido de ser zumbi-mãe"
 		"chi"   "你不再受保护，可能会成为母体僵尸"
+		"pl"   "Nie jesteś już chroniony przed zostaniem matką zombie"
+		"tr"   "Artık anne zombi olmaktan korunmuyorsun"
+		"it"   "Non sei più protetto dal diventare zombie madre"
+		"ua"   "Ви більше не захищені від того, щоб стати матір'ю-зомбі"
+		"zho"   "你不再受保護，可能會成為母體殭屍"
+		"cze"   "Už nejsi chráněn před tím, aby ses stal matkou zombie"
 	}
 	"protected"
 	{
@@ -221,6 +347,12 @@
 		"de"    "Du wurdest davor geschützt, Mutterzombie zu werden."
 		"pt"    "Você está protegido de ser zumbi-mãe."
 		"chi"   "你不会成为母体僵尸。"
+		"pl"   "Zostałeś ochroniony przed zostaniem matką zombie."
+		"tr"   "Anne zombi olmaktan korundun."
+		"it"   "Sei stato protetto dal diventare zombie madre."
+		"ua"   "Вас захищено від того, щоб стати матір'ю-зомбі."
+		"zho"   "你不會成為母體殭屍。"
+		"cze"   "Byl jsi ochráněn před tím, aby ses stal matkou zombie."
 	}
 	"The top"
 	{
@@ -232,6 +364,12 @@
 		"de"    "Weil du in der letzten Runde der Top-{1} warst!"
 		"pt"    "Porque você foi o Top {1} na rodada passada!"
 		"chi"   "因为你是上一回合的顶尖{1}！"
+		"pl"   "Ponieważ byłeś Top {1} w ostatniej rundzie!"
+		"tr"   "Çünkü geçen turun En İyi {1} oyuncusuydun!"
+		"it"   "Perché sei stato il Top {1} nel round precedente!"
+		"ua"   "Бо ви були Топ {1} минулого раунду!"
+		"zho"   "因為你是上一回合的頂尖{1}！"
+		"cze"   "Protože jsi byl v minulém kole Top {1}!"
 	}
 	"Knifer"
 	{
@@ -242,6 +380,12 @@
 		"de"	"Messerkämpfer"
 		"pt"	"Faqueiro"
 		"chi"	"刀手"
+		"pl"	"Nożownik"
+		"tr"	"Bıçakçı"
+		"it"	"Coltellatore"
+		"ua"	"Ножівник"
+		"zho"	"刀手"
+		"cze"	"Nožař"
 	}
 	"Defender"
 	{
@@ -252,6 +396,12 @@
 		"de"	"Verteidiger"
 		"pt"	"Defensor"
 		"chi"	"防守者"
+		"pl"	"Obrońca"
+		"tr"	"Savunucu"
+		"it"	"Difensore"
+		"ua"	"Захисник"
+		"zho"	"防守者"
+		"cze"	"Obránce"
 	}
 	"Not ranked"
 	{
@@ -262,6 +412,12 @@
 		"de"	"Noch nicht platziert"
 		"pt"	"Ainda não classificado"
 		"chi"	"尚未上榜"
+		"pl"	"Jeszcze bez rankingu"
+		"tr"	"Henüz sıralamada yok"
+		"it"	"Non ancora classificato"
+		"ua"	"Ще немає в рейтингу"
+		"zho"	"尚未上榜"
+		"cze"	"Zatím bez umístění"
 	}
 	"TopDefender Position"
 	{
@@ -273,6 +429,12 @@
 		"de"	"{1} ist derzeit Top-Verteidiger #{2} mit {3} {4}"
 		"pt"	"{1} é atualmente o Top defensor #{2} com {3} {4}"
 		"chi"	"{1} 目前是第 {2} 名防守者，{3} {4}"
+		"pl"	"{1} jest obecnie Top obrońcą #{2} z wynikiem {3} {4}"
+		"tr"	"{1} şu anda #{2}. sıradaki en iyi savunucu: {3} {4}"
+		"it"	"{1} è attualmente Top difensore #{2} con {3} {4}"
+		"ua"	"{1} зараз #{2} у топі захисників: {3} {4}"
+		"zho"	"{1} 目前是第 {2} 名防守者，{3} {4}"
+		"cze"	"{1} je momentálně Top obránce #{2} s {3} {4}"
 	}
 	"Immunity Usage"
 	{
@@ -283,6 +445,12 @@
 		"de"	"Verwendung: sm_immunity <Ziel> <0|1>"
 		"pt"	"Uso: sm_immunity <alvo> <0|1>"
 		"chi"	"用法：sm_immunity <目标> <0|1>"
+		"pl"	"Użycie: sm_immunity <cel> <0|1>"
+		"tr"	"Kullanım: sm_immunity <hedef> <0|1>"
+		"it"	"Uso: sm_immunity <bersaglio> <0|1>"
+		"ua"	"Використання: sm_immunity <ціль> <0|1>"
+		"zho"	"用法：sm_immunity <目標> <0|1>"
+		"cze"	"Použití: sm_immunity <cíl> <0|1>"
 	}
 	"Cant Immunity All"
 	{
@@ -293,6 +461,12 @@
 		"de"	"Immunität kann nicht auf alle Spieler angewendet werden!"
 		"pt"	"Não é possível aplicar imunidade a todos os jogadores!"
 		"chi"	"无法对所有玩家设置免疫！"
+		"pl"	"Nie można nadać odporności wszystkim graczom!"
+		"tr"	"Tüm oyunculara bağışıklık verilemez!"
+		"it"	"Impossibile applicare l'immunità a tutti i giocatori!"
+		"ua"	"Неможливо надати імунітет усім гравцям!"
+		"zho"	"無法對所有玩家設置免疫！"
+		"cze"	"Imunitu nelze udělit všem hráčům!"
 	}
 	"Bad Target"
 	{
@@ -303,6 +477,12 @@
 		"de"	"Ungültiges Ziel"
 		"pt"	"Alvo inválido"
 		"chi"	"无效目标"
+		"pl"	"Nieprawidłowy cel"
+		"tr"	"Geçersiz hedef"
+		"it"	"Bersaglio non valido"
+		"ua"	"Недійсна ціль"
+		"zho"	"無效目標"
+		"cze"	"Neplatný cíl"
 	}
 	"No Target"
 	{
@@ -313,5 +493,11 @@
 		"de"	"Kein Ziel"
 		"pt"	"Nenhum alvo"
 		"chi"	"没有目标"
+		"pl"	"Brak celu"
+		"tr"	"Hedef yok"
+		"it"	"Nessun bersaglio"
+		"ua"	"Немає цілі"
+		"zho"	"沒有目標"
+		"cze"	"Žádný cíl"
 	}
 }
