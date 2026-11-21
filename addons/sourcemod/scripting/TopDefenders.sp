@@ -15,6 +15,7 @@
 #include "loghelper.inc"
 #include "utilshelper.inc"
 
+#pragma semicolon 1
 #pragma newdecls required
 
 #define SPECMODE_NONE           0
